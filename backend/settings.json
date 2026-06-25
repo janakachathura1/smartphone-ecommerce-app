@@ -1,0 +1,113 @@
+{
+  "homepageVideoUrl": "http://localhost:5000/uploads/file-1780738686158.mp4",
+  "shopName": "UltraMobile",
+  "logoUrl": "http://localhost:5000/uploads/file-1774603605959.png",
+  "heroImageUrl": "http://localhost:5000/uploads/file-1774621249662.png",
+  "promoBanners": [
+    {
+      "id": 1,
+      "title": "iPhone 17 Series",
+      "subtitle": "Up to 8% off on all models",
+      "badge": "Limited Offer",
+      "buttonText": "Shop Apple",
+      "link": "/shop?brand=apple",
+      "image": "http://localhost:5000/uploads/file-1774672956315.png",
+      "bgColor": "from-primary-600 to-primary-800"
+    },
+    {
+      "id": 2,
+      "title": " Galaxy S26 Ultra",
+      "subtitle": "Up to 12% off — AI-powered flagship",
+      "badge": "Galaxy AI",
+      "buttonText": "Shop Samsung",
+      "link": "/shop?brand=samsung",
+      "image": "http://localhost:5000/uploads/file-1774684638439.png",
+      "bgColor": "from-secondary-900 to-secondary-950"
+    }
+  ],
+  "heroTag": "NEW ARRIVALS JUST DROPPED",
+  "heroMainTitle": "Welcome to UltraMobile Smartphones at Best Prices",
+  "heroSubtitle": "Discover the latest iPhones, Galaxy phones, Xiaomi, OnePlus, and more.",
+  "heroBadge1Top": "Exclusive",
+  "heroBadge1Main": "Flagship Series",
+  "heroBadge2Top": "Season Sale",
+  "heroBadge2Main": "20% OFF",
+  "heroSlides": [
+    {
+      "id": 1774624738101,
+      "heroTag": "NEW ARRIVALS JUST DROPPED",
+      "heroMainTitle": "Welcome to UltraMobile Smartphones at Best Prices",
+      "heroSubtitle": "Discover the latest iPhones, Galaxy phones, Xiaomi, OnePlus, and more.",
+      "heroBadge1Top": "Exclusive",
+      "heroBadge1Main": "Flagship Series",
+      "heroBadge2Top": "Season Sale",
+      "heroBadge2Main": "20% OFF",
+      "heroImageUrl": "http://localhost:5000/uploads/file-1774625885553.png"
+    },
+    {
+      "id": 1774624776414,
+      "heroTag": "NEW ARRIVALS JUST DROPPED",
+      "heroMainTitle": "Welcome to UltraMobile Smartphones at Best Prices",
+      "heroSubtitle": "Discover the latest iPhones, Galaxy phones, Xiaomi, OnePlus, and more.",
+      "heroBadge1Top": "Exclusive",
+      "heroBadge1Main": "Flagship Series",
+      "heroBadge2Top": "Discount",
+      "heroBadge2Main": "50% OFF",
+      "heroImageUrl": "http://localhost:5000/uploads/file-1774625892499.webp"
+    },
+    {
+      "id": 1774624814309,
+      "heroTag": "NEW ARRIVALS JUST DROPPED",
+      "heroMainTitle": "Welcome to UltraMobile Smartphones at Best Prices",
+      "heroSubtitle": "Discover the latest iPhones, Galaxy phones, Xiaomi, OnePlus, and more.",
+      "heroBadge1Top": "Exclusive",
+      "heroBadge1Main": "Flagship Series",
+      "heroBadge2Top": "Discount",
+      "heroBadge2Main": "50% OFF",
+      "heroImageUrl": "http://localhost:5000/uploads/file-1774626042429.png"
+    }
+  ],
+  "shopBannerImageUrl": "http://localhost:5000/uploads/file-1780738542748.jpeg",
+  "footerTagline": "Premium Mobile Shop",
+  "footerDescription": "Your premium destination for the latest smartphones. Shop Apple, Samsung, Xiaomi, OnePlus & more.",
+  "footerAddress": "123 Tech Street, Dhaka, Bangladesh 1200",
+  "contactPhone": "0757192832",
+  "contactEmail": "UltraMobile@gmail.com",
+  "socialFacebook": "https://web.facebook.com/profile.php?id=61573485830943",
+  "socialTwitter": "#",
+  "socialInstagram": "https://www.instagram.com/_itss_chathuz_/",
+  "socialYoutube": "www.youtube.com/@janakachathura-r3p5k",
+  "siteFeatures": [
+    {
+      "title": "2-Year Warranty",
+      "desc": "All products come with full manufacturer warranty.",
+      "iconName": "RiTruckLine"
+    },
+    {
+      "title": "Free Shipping",
+      "desc": "Free delivery on orders over $500 worldwide.",
+      "iconName": "RiTruckLine"
+    },
+    {
+      "title": "24/7 Support",
+      "desc": "Expert support team ready to help anytime.",
+      "iconName": "RiCustomerServiceLine"
+    },
+    {
+      "title": "Secure Payment",
+      "desc": "Your transactions are encrypted and safe.",
+      "iconName": "RiSecurePaymentLine"
+    }
+  ],
+  "deliveryFeeColombo": 350,
+  "deliveryFeeWestern": 450,
+  "deliveryFeeOther": 750,
+  "bankAccountName": "Ultramobile (PVT) LTD",
+  "bankAccountNumber": "183 948 2901",
+  "bankBranch": "Colombo Colpetty",
+  "aboutHeroBgImage": "http://localhost:5000/uploads/file-1780978622623.webp",
+  "aboutTeamVideoUrl": "http://localhost:5000/uploads/file-1780978627598.mp4",
+  "loginImageUrl": "http://localhost:5000/uploads/file-1780739710420.jpg",
+  "loginTitle": "Simplify management With Our dashboard.",
+  "loginSubtitle": "Simplify your e-commerce management with our user-friendly admin dashboard."
+}
