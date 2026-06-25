@@ -2,10 +2,20 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 import { AppError } from '../middleware/errorHandler.js';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware.js';
 
 const router = Router();
+
+// Configure Cloudinary if credentials exist
+if (process.env.CLOUDINARY_CLOUD_NAME) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 // Ensure uploads directory exists
 const uploadDir = process.env.VERCEL
@@ -44,10 +54,36 @@ const upload = multer({
   },
 });
 
-router.post('/', authenticate, upload.single('file'), (req, res) => {
+router.post('/', authenticate, upload.single('file'), async (req, res) => {
   if (!req.file) {
     throw new AppError('No file uploaded', 400);
   }
+
+  // Upload to Cloudinary if configured
+  if (process.env.CLOUDINARY_CLOUD_NAME) {
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'smartphone-ecommerce',
+      });
+      
+      // Clean up local temp file
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      return res.json({
+        success: true,
+        message: 'File uploaded to Cloudinary successfully',
+        data: {
+          url: result.secure_url
+        }
+      });
+    } catch (uploadError) {
+      console.error('Cloudinary upload error:', uploadError);
+      // Fall back to local file if upload fails
+    }
+  }
+
   const protocol = req.headers['x-forwarded-proto'] || req.protocol;
   const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
   
