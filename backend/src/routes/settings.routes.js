@@ -67,13 +67,18 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', authenticate, requireAdmin, (req, res) => {
-    const file = getSettingsFile();
-    const current = getSettings();
-    const next = { ...current, ...req.body };
-    fs.writeFileSync(file, JSON.stringify(next, null, 2));
-    
-    const responseData = replaceLocalhostUrls(next, req);
-    res.json({ success: true, data: responseData });
+    try {
+        const file = getSettingsFile();
+        const current = getSettings();
+        const next = { ...current, ...req.body };
+        fs.writeFileSync(file, JSON.stringify(next, null, 2));
+        
+        const responseData = replaceLocalhostUrls(next, req);
+        res.json({ success: true, data: responseData });
+    } catch (error) {
+        console.error("Error writing settings:", error);
+        res.status(500).json({ success: false, message: 'Failed to save settings: ' + error.message });
+    }
 });
 
 export default router;
