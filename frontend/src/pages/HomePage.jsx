@@ -178,7 +178,7 @@ export default function HomePage() {
                           <img
                             src={slide.heroImageUrl}
                             alt="Hero Featured"
-                            className="max-h-full max-w-full object-contain drop-shadow-[0_45px_70px_rgba(37,99,235,0.25)] animate-float scale-125 group-hover:scale-[1.35] transition-transform duration-1000"
+                            className="w-full h-full object-cover drop-shadow-[0_45px_70px_rgba(37,99,235,0.25)] animate-float scale-125 group-hover:scale-[1.35] transition-transform duration-1000"
                           />
                         </div>
                       ) : (
