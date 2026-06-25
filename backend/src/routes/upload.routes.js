@@ -8,8 +8,11 @@ import { authenticate, requireAdmin } from '../middleware/auth.middleware.js';
 const router = Router();
 
 // Ensure uploads directory exists
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
+const uploadDir = process.env.VERCEL
+  ? '/tmp'
+  : path.join(process.cwd(), 'uploads');
+
+if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
