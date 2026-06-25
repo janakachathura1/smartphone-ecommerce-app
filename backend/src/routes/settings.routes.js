@@ -4,24 +4,55 @@ import path from 'path';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware.js';
 
 const router = Router();
-const SETTINGS_FILE = path.join(process.cwd(), 'settings.json');
+const getSettingsFile = () => {
+    return process.env.VERCEL
+        ? path.join('/tmp', 'settings.json')
+        : path.join(process.cwd(), 'settings.json');
+};
 
 const getSettings = () => {
+    const file = getSettingsFile();
     try {
-        if (fs.existsSync(SETTINGS_FILE)) {
-            return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+        if (fs.existsSync(file)) {
+            return JSON.parse(fs.readFileSync(file, 'utf-8'));
         }
-    } catch (e) {}
+        
+        // On Vercel, copy the template settings.json from project root to /tmp if it doesn't exist
+        const defaultFile = path.join(process.cwd(), 'settings.json');
+        if (fs.existsSync(defaultFile)) {
+            const data = fs.readFileSync(defaultFile, 'utf-8');
+            if (process.env.VERCEL) {
+                fs.writeFileSync(file, data);
+            }
+            return JSON.parse(data);
+        }
+    } catch (e) {
+        console.error("Error reading settings:", e);
+    }
     // Default video
     return {
         homepageVideoUrl: "https://www.w3schools.com/html/mov_bbb.mp4"
     };
 };
 
+const replaceLocalhostUrls = (settings, req) => {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
+    
+    try {
+        const settingsStr = JSON.stringify(settings);
+        const updatedStr = settingsStr.replace(/http:\/\/localhost:5000/g, baseUrl);
+        return JSON.parse(updatedStr);
+    } catch (e) {
+        return settings;
+    }
+};
+
 import { prisma } from '../lib/prisma.js';
 
 router.get('/', async (req, res) => {
-    const settings = getSettings();
+    let settings = getSettings();
+    settings = replaceLocalhostUrls(settings, req);
     try {
         const admin = await prisma.user.findFirst({
             where: { role: 'admin', isActive: true }
@@ -36,10 +67,13 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', authenticate, requireAdmin, (req, res) => {
+    const file = getSettingsFile();
     const current = getSettings();
     const next = { ...current, ...req.body };
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(next, null, 2));
-    res.json({ success: true, data: next });
+    fs.writeFileSync(file, JSON.stringify(next, null, 2));
+    
+    const responseData = replaceLocalhostUrls(next, req);
+    res.json({ success: true, data: responseData });
 });
 
 export default router;

@@ -48,7 +48,8 @@ router.post('/', authenticate, upload.single('file'), (req, res) => {
   if (!req.file) {
     throw new AppError('No file uploaded', 400);
   }
-  const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
   
   res.json({
     success: true,
