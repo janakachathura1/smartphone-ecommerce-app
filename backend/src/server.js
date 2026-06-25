@@ -42,6 +42,8 @@ app.use(cors({
     if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
     // Allow configured FRONTEND_URL
     if (origin === (process.env.FRONTEND_URL || 'http://localhost:5173')) return callback(null, true);
+    // Allow any Vercel deployment origin
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
