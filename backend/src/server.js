@@ -61,24 +61,7 @@ app.use('/uploads', express.static(staticUploads));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  try {
-    const files = fs.readdirSync(process.cwd());
-    res.json({ 
-      status: 'OK', 
-      timestamp: new Date().toISOString(), 
-      cwd: process.cwd(),
-      files,
-      env: process.env.NODE_ENV 
-    });
-  } catch (err) {
-    res.json({ 
-      status: 'OK', 
-      timestamp: new Date().toISOString(), 
-      cwd: process.cwd(),
-      error: err.message,
-      env: process.env.NODE_ENV 
-    });
-  }
+  res.json({ status: 'OK', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
 });
 
 // Routes

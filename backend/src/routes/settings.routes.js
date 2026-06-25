@@ -17,8 +17,12 @@ const getSettings = () => {
             return JSON.parse(fs.readFileSync(file, 'utf-8'));
         }
         
-        // On Vercel, copy the template settings.json from project root to /tmp if it doesn't exist
-        const defaultFile = path.join(process.cwd(), 'settings.json');
+        // Try resolving settings.json relative to process.cwd() or backend subdirectory
+        let defaultFile = path.join(process.cwd(), 'settings.json');
+        if (!fs.existsSync(defaultFile)) {
+            defaultFile = path.join(process.cwd(), 'backend', 'settings.json');
+        }
+
         if (fs.existsSync(defaultFile)) {
             const data = fs.readFileSync(defaultFile, 'utf-8');
             if (process.env.VERCEL) {
