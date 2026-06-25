@@ -1,8 +1,8 @@
 {
-  "homepageVideoUrl": "http://localhost:5000/uploads/file-1780738686158.mp4",
+  "homepageVideoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
   "shopName": "UltraMobile",
-  "logoUrl": "http://localhost:5000/uploads/file-1774603605959.png",
-  "heroImageUrl": "http://localhost:5000/uploads/file-1774621249662.png",
+  "logoUrl": "https://placehold.co/200x50/1a1a1a/ffffff?text=UltraMobile",
+  "heroImageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600&auto=format&fit=crop",
   "promoBanners": [
     {
       "id": 1,
@@ -11,7 +11,7 @@
       "badge": "Limited Offer",
       "buttonText": "Shop Apple",
       "link": "/shop?brand=apple",
-      "image": "http://localhost:5000/uploads/file-1774672956315.png",
+      "image": "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=600&auto=format&fit=crop",
       "bgColor": "from-primary-600 to-primary-800"
     },
     {
@@ -21,7 +21,7 @@
       "badge": "Galaxy AI",
       "buttonText": "Shop Samsung",
       "link": "/shop?brand=samsung",
-      "image": "http://localhost:5000/uploads/file-1774684638439.png",
+      "image": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop",
       "bgColor": "from-secondary-900 to-secondary-950"
     }
   ],
@@ -42,7 +42,7 @@
       "heroBadge1Main": "Flagship Series",
       "heroBadge2Top": "Season Sale",
       "heroBadge2Main": "20% OFF",
-      "heroImageUrl": "http://localhost:5000/uploads/file-1774625885553.png"
+      "heroImageUrl": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": 1774624776414,
@@ -53,7 +53,7 @@
       "heroBadge1Main": "Flagship Series",
       "heroBadge2Top": "Discount",
       "heroBadge2Main": "50% OFF",
-      "heroImageUrl": "http://localhost:5000/uploads/file-1774625892499.webp"
+      "heroImageUrl": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=600&auto=format&fit=crop"
     },
     {
       "id": 1774624814309,
@@ -64,10 +64,10 @@
       "heroBadge1Main": "Flagship Series",
       "heroBadge2Top": "Discount",
       "heroBadge2Main": "50% OFF",
-      "heroImageUrl": "http://localhost:5000/uploads/file-1774626042429.png"
+      "heroImageUrl": "https://images.unsplash.com/photo-1616348436168-de43ad0db179?q=80&w=600&auto=format&fit=crop"
     }
   ],
-  "shopBannerImageUrl": "http://localhost:5000/uploads/file-1780738542748.jpeg",
+  "shopBannerImageUrl": "https://images.unsplash.com/photo-1557180295-76eee20ae8aa?q=80&w=1200&auto=format&fit=crop",
   "footerTagline": "Premium Mobile Shop",
   "footerDescription": "Your premium destination for the latest smartphones. Shop Apple, Samsung, Xiaomi, OnePlus & more.",
   "footerAddress": "123 Tech Street, Dhaka, Bangladesh 1200",
@@ -105,9 +105,9 @@
   "bankAccountName": "Ultramobile (PVT) LTD",
   "bankAccountNumber": "183 948 2901",
   "bankBranch": "Colombo Colpetty",
-  "aboutHeroBgImage": "http://localhost:5000/uploads/file-1780978622623.webp",
-  "aboutTeamVideoUrl": "http://localhost:5000/uploads/file-1780978627598.mp4",
-  "loginImageUrl": "http://localhost:5000/uploads/file-1780739710420.jpg",
+  "aboutHeroBgImage": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
+  "aboutTeamVideoUrl": "https://www.w3schools.com/html/mov_bbb.mp4",
+  "loginImageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop",
   "loginTitle": "Simplify management With Our dashboard.",
   "loginSubtitle": "Simplify your e-commerce management with our user-friendly admin dashboard."
 }
