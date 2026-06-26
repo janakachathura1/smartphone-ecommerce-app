@@ -29,6 +29,7 @@ export default function Navbar() {
   const shopName = settings?.shopName || 'TechPulse';
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showShopMenu, setShowShopMenu] = useState(false);
   const [mobileCatsOpen, setMobileCatsOpen] = useState(false);
@@ -122,9 +123,14 @@ export default function Navbar() {
                 to="/"
                 className={`flex items-center gap-2 group ${isLoading ? 'opacity-50' : ''} flex-shrink-0`}
               >
-                {settings?.logoUrl ? (
+                {settings?.logoUrl && !logoFailed ? (
                   <div className="relative">
-                    <img src={settings.logoUrl} alt={shopName} className="h-9 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110" />
+                    <img 
+                      src={settings.logoUrl} 
+                      alt={shopName} 
+                      onError={() => setLogoFailed(true)}
+                      className="h-9 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110" 
+                    />
                     <div className="absolute inset-0 bg-primary-400/10 blur-xl rounded-full -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 ) : null}
@@ -369,8 +375,13 @@ export default function Navbar() {
             {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-5 border-b border-secondary-100 flex-shrink-0">
               <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5">
-                {settings?.logoUrl && (
-                  <img src={settings.logoUrl} alt={shopName} className="h-9 w-auto object-contain" />
+                {settings?.logoUrl && !logoFailed && (
+                  <img 
+                    src={settings.logoUrl} 
+                    alt={shopName} 
+                    onError={() => setLogoFailed(true)}
+                    className="h-9 w-auto object-contain" 
+                  />
                 )}
                 <div className="flex flex-col leading-none">
                   <span className="text-[8px] font-bold text-primary-600 tracking-[0.3em] uppercase">Official</span>

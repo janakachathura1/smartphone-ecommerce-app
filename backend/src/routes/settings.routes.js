@@ -2,19 +2,17 @@ import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware.js';
+import { prisma } from '../lib/prisma.js';
 
 const router = Router();
-const getSettingsFile = () => {
-    return process.env.VERCEL
-        ? path.join('/tmp', 'settings.json')
-        : path.join(process.cwd(), 'settings.json');
-};
 
-const getSettings = () => {
-    const file = getSettingsFile();
+const getSettings = async () => {
     try {
-        if (fs.existsSync(file)) {
-            return JSON.parse(fs.readFileSync(file, 'utf-8'));
+        const record = await prisma.systemSetting.findUnique({
+            where: { id: 'default' }
+        });
+        if (record) {
+            return JSON.parse(record.value);
         }
         
         // Try resolving settings.json relative to process.cwd() or backend subdirectory
@@ -25,8 +23,15 @@ const getSettings = () => {
 
         if (fs.existsSync(defaultFile)) {
             const data = fs.readFileSync(defaultFile, 'utf-8');
-            if (process.env.VERCEL) {
-                fs.writeFileSync(file, data);
+            try {
+                // Seed the database with the file content
+                await prisma.systemSetting.upsert({
+                    where: { id: 'default' },
+                    update: { value: data },
+                    create: { id: 'default', value: data }
+                });
+            } catch (seedErr) {
+                console.error("Error seeding settings to DB:", seedErr);
             }
             return JSON.parse(data);
         }
@@ -52,10 +57,8 @@ const replaceLocalhostUrls = (settings, req) => {
     }
 };
 
-import { prisma } from '../lib/prisma.js';
-
 router.get('/', async (req, res) => {
-    let settings = getSettings();
+    let settings = await getSettings();
     settings = replaceLocalhostUrls(settings, req);
     try {
         const admin = await prisma.user.findFirst({
@@ -70,12 +73,16 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', authenticate, requireAdmin, (req, res) => {
+router.post('/', authenticate, requireAdmin, async (req, res) => {
     try {
-        const file = getSettingsFile();
-        const current = getSettings();
+        const current = await getSettings();
         const next = { ...current, ...req.body };
-        fs.writeFileSync(file, JSON.stringify(next, null, 2));
+        
+        await prisma.systemSetting.upsert({
+            where: { id: 'default' },
+            update: { value: JSON.stringify(next) },
+            create: { id: 'default', value: JSON.stringify(next) }
+        });
         
         const responseData = replaceLocalhostUrls(next, req);
         res.json({ success: true, data: responseData });

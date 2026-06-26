@@ -70,6 +70,7 @@ function FaqItem({ faq, index }) {
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [focusedField, setFocusedField] = useState(null);
+  const [bgFailed, setBgFailed] = useState(false);
   
   const { data: settings } = useQuery({
     queryKey: ['settings'],
@@ -193,9 +194,21 @@ export default function ContactPage() {
   return (
     <div className="bg-white min-h-screen text-secondary-950">
       {/* ───── Hero Section ───── */}
-      <section className="py-32 lg:py-44 relative overflow-hidden flex items-center justify-center min-h-[520px]">
-        {/* Dark gradient background */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-secondary-950 via-secondary-900 to-primary-950" />
+      <section className="py-32 lg:py-44 relative overflow-hidden flex items-center justify-center min-h-[520px] group">
+        {/* Dark gradient background / Image */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {settings?.contactHeroBgImage && !bgFailed ? (
+            <img 
+              src={settings.contactHeroBgImage} 
+              alt="Contact Background" 
+              onError={() => setBgFailed(true)}
+              className="w-full h-full object-cover transform scale-100 group-hover:scale-110 transition-transform duration-[15s] ease-out" 
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-secondary-950 via-secondary-900 to-primary-950" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-secondary-950/80 via-secondary-900/60 to-secondary-950/90" />
+        </div>
         
         {/* Animated decorative orbs */}
         <div className="absolute top-20 -left-20 w-80 h-80 bg-primary-600/20 rounded-full blur-[100px] animate-float" />

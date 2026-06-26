@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RiSmartphoneLine, RiMailLine, RiPhoneLine, RiMapPinLine, RiTwitterXLine, RiFacebookCircleLine, RiInstagramLine, RiYoutubeLine } from 'react-icons/ri';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 
 export default function Footer() {
+  const [logoFailed, setLogoFailed] = useState(false);
   const { data: settings } = useQuery({
     queryKey: ['settings'],
     queryFn: () => api.get('/settings').then(res => res.data.data)
@@ -37,8 +39,13 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-3 mb-6 group">
-              {settings?.logoUrl ? (
-                <img src={settings.logoUrl} alt={settings?.shopName || 'TechPulse'} className="h-10 w-auto object-contain brightness-0 invert" />
+              {settings?.logoUrl && !logoFailed ? (
+                <img 
+                  src={settings.logoUrl} 
+                  alt={settings?.shopName || 'TechPulse'} 
+                  onError={() => setLogoFailed(true)}
+                  className="h-10 w-auto object-contain brightness-0 invert" 
+                />
               ) : (
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
                   <span className="text-white font-black text-lg">{(settings?.shopName || 'TechPulse').charAt(0)}</span>

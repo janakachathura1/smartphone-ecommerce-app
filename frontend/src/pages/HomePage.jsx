@@ -155,9 +155,9 @@ export default function HomePage() {
                 if (idx === currentSlide) {
                   slideCss = 'opacity-100 translate-x-0 z-20 pointer-events-auto';
                 } else if (idx < currentSlide) {
-                  slideCss = 'opacity-0 -translate-x-[20%] z-0 pointer-events-none scale-95';
+                  slideCss = 'opacity-0 -translate-x-[20%] z-0 pointer-events-none scale-95 invisible';
                 } else {
-                  slideCss = 'opacity-0 translate-x-[20%] z-0 pointer-events-none scale-95';
+                  slideCss = 'opacity-0 translate-x-[20%] z-0 pointer-events-none scale-95 invisible';
                 }
 
                 return (

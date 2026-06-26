@@ -32,6 +32,7 @@ export default function AdminSettings() {
         shopBannerImageUrl: settings.shopBannerImageUrl || '',
         aboutHeroBgImage: settings.aboutHeroBgImage || '',
         aboutTeamVideoUrl: settings.aboutTeamVideoUrl || '',
+        contactHeroBgImage: settings.contactHeroBgImage || '',
         loginImageUrl: settings.loginImageUrl || '',
         loginTitle: settings.loginTitle || 'Simplify management With Our dashboard.',
         loginSubtitle: settings.loginSubtitle || 'Simplify your e-commerce management with our user-friendly admin dashboard.',
@@ -205,6 +206,14 @@ export default function AdminSettings() {
             icon={RiVideoLine}
             stateKey="aboutTeamVideoUrl"
             accept="video/*"
+          />
+
+          <UploadField
+            title="Contact Page Hero Background"
+            desc="Recommended size: 1920x800px (JPG/PNG). Appears at the top of the /contact page."
+            icon={RiImageAddLine}
+            stateKey="contactHeroBgImage"
+            accept="image/*"
           />
 
           <div className="border-t border-secondary-50 pt-6 mt-6">

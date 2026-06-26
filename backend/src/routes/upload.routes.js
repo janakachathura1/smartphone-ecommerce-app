@@ -84,16 +84,39 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
     }
   }
 
-  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-  const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
-  
-  res.json({
-    success: true,
-    message: 'File uploaded successfully',
-    data: {
-      url: `${baseUrl}/uploads/${req.file.filename}`
+  // Fallback to Base64 data URL if Cloudinary is not configured or fails
+  try {
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const mimeType = req.file.mimetype;
+    const base64Data = fileBuffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    
+    // Clean up local temp file
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
     }
-  });
+    
+    return res.json({
+      success: true,
+      message: 'File converted to Base64 successfully',
+      data: {
+        url: dataUrl
+      }
+    });
+  } catch (error) {
+    console.error('Base64 conversion error:', error);
+    
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
+    
+    res.json({
+      success: true,
+      message: 'File uploaded successfully (local fallback)',
+      data: {
+        url: `${baseUrl}/uploads/${req.file.filename}`
+      }
+    });
+  }
 });
 
 export default router;

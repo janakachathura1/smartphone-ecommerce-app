@@ -290,3 +290,8 @@ model ContactMessage {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model SystemSetting {
+  id    String @id @default("default")
+  value String @db.Text
+}
