@@ -62,13 +62,9 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
   // Upload to Cloudinary if configured
   if (process.env.CLOUDINARY_CLOUD_NAME) {
     try {
-      // Detect resource type based on mimetype
-      const isVideo = req.file.mimetype.startsWith('video/');
-      const resourceType = isVideo ? 'video' : 'image';
-      
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: 'smartphone-ecommerce',
-        resource_type: resourceType,
+        resource_type: 'auto',
       });
       
       // Clean up local temp file
@@ -85,43 +81,48 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
       });
     } catch (uploadError) {
       console.error('Cloudinary upload error:', uploadError);
-      // Fall back to Base64/local file if upload fails
+      // Fall back to local file if upload fails
     }
   }
 
-  // Fallback to Base64 data URL if Cloudinary is not configured or fails
-  try {
-    const fileBuffer = fs.readFileSync(req.file.path);
-    const mimeType = req.file.mimetype;
-    const base64Data = fileBuffer.toString('base64');
-    const dataUrl = `data:${mimeType};base64,${base64Data}`;
-    
-    // Clean up local temp file
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+  // Fallback to Base64 data URL for images only (videos are too large for Base64)
+  const isImage = req.file.mimetype.startsWith('image/');
+  
+  if (isImage) {
+    try {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const mimeType = req.file.mimetype;
+      const base64Data = fileBuffer.toString('base64');
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      
+      // Clean up local temp file
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      return res.json({
+        success: true,
+        message: 'File converted to Base64 successfully',
+        data: {
+          url: dataUrl
+        }
+      });
+    } catch (error) {
+      console.error('Base64 conversion error:', error);
     }
-    
-    return res.json({
-      success: true,
-      message: 'File converted to Base64 successfully',
-      data: {
-        url: dataUrl
-      }
-    });
-  } catch (error) {
-    console.error('Base64 conversion error:', error);
-    
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
-    const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
-    
-    res.json({
-      success: true,
-      message: 'File uploaded successfully (local fallback)',
-      data: {
-        url: `${baseUrl}/uploads/${req.file.filename}`
-      }
-    });
   }
+
+  // Final fallback: serve from local uploads directory
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const baseUrl = process.env.BASE_URL || `${protocol}://${req.get('host')}`;
+  
+  res.json({
+    success: true,
+    message: 'File uploaded successfully',
+    data: {
+      url: `${baseUrl}/uploads/${req.file.filename}`
+    }
+  });
 });
 
 export default router;
