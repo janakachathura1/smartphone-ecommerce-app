@@ -62,8 +62,13 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
   // Upload to Cloudinary if configured
   if (process.env.CLOUDINARY_CLOUD_NAME) {
     try {
+      // Detect resource type based on mimetype
+      const isVideo = req.file.mimetype.startsWith('video/');
+      const resourceType = isVideo ? 'video' : 'image';
+      
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: 'smartphone-ecommerce',
+        resource_type: resourceType,
       });
       
       // Clean up local temp file
@@ -80,7 +85,7 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
       });
     } catch (uploadError) {
       console.error('Cloudinary upload error:', uploadError);
-      // Fall back to local file if upload fails
+      // Fall back to Base64/local file if upload fails
     }
   }
 
