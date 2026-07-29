@@ -67,3 +67,59 @@ export const getMe = async (req, res) => {
   });
   res.json({ success: true, data: { user } });
 };
+
+import { sendPasswordResetEmail } from '../lib/notificationService.js';
+
+export const forgotPassword = async (req, res) => {
+  const email = req.body.email?.toLowerCase();
+  if (!email) throw new AppError('Email is required.', 400);
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    // Return success to avoid email enumeration
+    return res.json({ success: true, message: 'If an account exists with this email, a reset code has been sent.' });
+  }
+
+  // Generate 6-digit OTP code
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const resetToken = jwt.sign({ userId: user.id, email: user.email, otp }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+  // Send Email Notification
+  await sendPasswordResetEmail(user.email, otp, user.firstName);
+
+  res.json({
+    success: true,
+    message: 'Verification code sent to your email address.',
+    data: { resetToken }, // Return reset token to include in reset request
+  });
+};
+
+export const resetPassword = async (req, res) => {
+  const { resetToken, otp, newPassword } = req.body;
+  if (!resetToken || !otp || !newPassword) {
+    throw new AppError('Reset token, verification code, and new password are required.', 400);
+  }
+  if (newPassword.length < 8) {
+    throw new AppError('New password must be at least 8 characters.', 400);
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+  } catch {
+    throw new AppError('Invalid or expired reset token. Please request a new code.', 400);
+  }
+
+  if (decoded.otp !== otp.toString().trim()) {
+    throw new AppError('Invalid verification code. Please check your email.', 400);
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { id: decoded.userId },
+    data: { password: hashedPassword },
+  });
+
+  res.json({ success: true, message: 'Password reset successful! You can now log in with your new password.' });
+};
+

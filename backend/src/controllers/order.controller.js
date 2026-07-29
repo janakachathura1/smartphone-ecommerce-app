@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { getUnitPrice } from './cart.controller.js';
 import { v4 as uuidv4 } from 'uuid';
+import { sendOrderConfirmationNotifications, sendOrderStatusUpdateNotifications } from '../lib/notificationService.js';
 
 const generateOrderNumber = () => {
   const prefix = 'TP';
@@ -107,6 +108,16 @@ export const createOrder = async (req, res) => {
 
   // Clear cart
   await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+
+  // Trigger Notifications (Email & SMS) in background
+  const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+  const userEmail = user?.email;
+  const userPhone = order.address?.phone || user?.phone;
+  const customerName = order.address?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`;
+
+  sendOrderConfirmationNotifications(order, userEmail, userPhone, customerName).catch((err) =>
+    console.error('Notification dispatch error:', err)
+  );
 
   res.status(201).json({ success: true, message: 'Order placed successfully.', data: { order } });
 };
@@ -318,6 +329,16 @@ export const updateOrderStatus = async (req, res) => {
       ...(paymentStatus && { paymentStatus }),
       ...(status === 'delivered' && { deliveredAt: new Date() }),
     },
+    include: { user: true, address: true },
   });
+
+  if (status) {
+    const userEmail = order.user?.email;
+    const userPhone = order.address?.phone || order.user?.phone;
+    sendOrderStatusUpdateNotifications(order, userEmail, userPhone, status).catch((err) =>
+      console.error('Status notification error:', err)
+    );
+  }
+
   res.json({ success: true, message: 'Order updated.', data: { order } });
 };
