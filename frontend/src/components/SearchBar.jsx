@@ -91,7 +91,7 @@ export default function SearchBar({ onClose, autoFocus = false, placeholder = 'S
   ];
 
   const goToItem = useCallback((entry) => {
-    if (entry.type === 'product') navigate(`/product/${entry.item.slug}`);
+    if (entry.type === 'product') navigate(`/product/${entry.item.slug || entry.item.id}`);
     else if (entry.type === 'brand') navigate(`/shop?brand=${entry.item.slug}`);
     else navigate(`/shop?category=${entry.item.slug}`);
     setQuery('');

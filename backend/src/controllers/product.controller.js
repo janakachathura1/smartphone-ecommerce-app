@@ -109,7 +109,13 @@ export const getProducts = async (req, res) => {
 export const getProductBySlug = async (req, res) => {
   const { slug } = req.params;
   const product = await prisma.product.findFirst({
-    where: { slug, isActive: true },
+    where: {
+      OR: [
+        { slug: slug },
+        { id: slug },
+      ],
+      isActive: true,
+    },
     include: {
       brand: { select: { id: true, name: true, slug: true, logo: true } },
       category: { select: { id: true, name: true, slug: true } },

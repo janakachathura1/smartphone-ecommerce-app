@@ -221,7 +221,7 @@ export default function Navbar() {
                               {navNewArrivals.slice(0, 2).map((product) => (
                                 <Link
                                   key={product.id}
-                                  to={`/product/${product.slug}`}
+                                  to={`/product/${product.slug || product.id}`}
                                   onClick={() => setShowShopMenu(false)}
                                   className="group flex gap-3 p-2.5 hover:bg-secondary-50 rounded-2xl transition-all border border-transparent hover:border-secondary-100"
                                 >

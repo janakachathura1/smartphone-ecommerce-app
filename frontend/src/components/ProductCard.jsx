@@ -51,7 +51,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <Link to={`/product/${product.slug}`} className="group card-hover flex flex-col">
+    <Link to={`/product/${product.slug || product.id}`} className="group card-hover flex flex-col cursor-pointer">
       {/* Image */}
       <div className="relative overflow-hidden bg-white aspect-square p-2">
         <img
