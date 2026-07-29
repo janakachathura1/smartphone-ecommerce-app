@@ -104,12 +104,17 @@ function PageTransitionLoader() {
   );
 }
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 export default function App() {
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '105828472910-dummy-google-client-id.apps.googleusercontent.com';
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ScrollToTop />
-        <PageTransitionLoader />
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ScrollToTop />
+          <PageTransitionLoader />
         <Toaster
           position="top-right"
           toastOptions={{
@@ -171,5 +176,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+  </GoogleOAuthProvider>
   );
 }

@@ -123,3 +123,92 @@ export const resetPassword = async (req, res) => {
   res.json({ success: true, message: 'Password reset successful! You can now log in with your new password.' });
 };
 
+import { OAuth2Client } from 'google-auth-library';
+
+export const googleLogin = async (req, res) => {
+  const { credential, profile } = req.body;
+  let email, firstName, lastName, avatar;
+
+  if (credential) {
+    try {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (clientId) {
+        const client = new OAuth2Client(clientId);
+        const ticket = await client.verifyIdToken({
+          idToken: credential,
+          audience: clientId,
+        });
+        const payload = ticket.getPayload();
+        email = payload.email?.toLowerCase();
+        firstName = payload.given_name || payload.name?.split(' ')[0] || 'Google';
+        lastName = payload.family_name || payload.name?.split(' ')[1] || 'User';
+        avatar = payload.picture;
+      } else {
+        // Parse token payload directly if GOOGLE_CLIENT_ID not explicitly configured yet
+        const payload = JSON.parse(Buffer.from(credential.split('.')[1], 'base64').toString('utf-8'));
+        email = payload.email?.toLowerCase();
+        firstName = payload.given_name || payload.name?.split(' ')[0] || 'Google';
+        lastName = payload.family_name || payload.name?.split(' ')[1] || 'User';
+        avatar = payload.picture;
+      }
+    } catch (err) {
+      console.error('Google token verification error:', err.message);
+      throw new AppError('Failed to verify Google login credential.', 400);
+    }
+  } else if (profile && profile.email) {
+    email = profile.email.toLowerCase();
+    firstName = profile.given_name || profile.name?.split(' ')[0] || 'Google';
+    lastName = profile.family_name || profile.name?.split(' ')[1] || 'User';
+    avatar = profile.picture;
+  } else {
+    throw new AppError('Google login credential is required.', 400);
+  }
+
+  if (!email) throw new AppError('Google account email could not be retrieved.', 400);
+
+  let user = await prisma.user.findUnique({ where: { email } });
+
+  if (user) {
+    if (!user.isActive) throw new AppError('Your account has been deactivated.', 403);
+    // Update avatar if not already set
+    if (avatar && !user.avatar) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { avatar },
+      });
+    }
+  } else {
+    // Register new user automatically
+    const randomPassword = await bcrypt.hash(uuidv4(), 12);
+    user = await prisma.user.create({
+      data: {
+        email,
+        password: randomPassword,
+        firstName,
+        lastName,
+        avatar: avatar || null,
+      },
+    });
+
+    // Auto-create cart & wishlist
+    await prisma.cart.create({ data: { userId: user.id } });
+    await prisma.wishlist.create({ data: { userId: user.id } });
+  }
+
+  // Ensure cart/wishlist exist
+  const cartExists = await prisma.cart.findUnique({ where: { userId: user.id } });
+  if (!cartExists) await prisma.cart.create({ data: { userId: user.id } });
+  const wishExists = await prisma.wishlist.findUnique({ where: { userId: user.id } });
+  if (!wishExists) await prisma.wishlist.create({ data: { userId: user.id } });
+
+  const token = generateToken(user.id, user.role);
+  const { password: _, ...userWithoutPassword } = user;
+
+  res.json({
+    success: true,
+    message: 'Google login successful.',
+    data: { user: userWithoutPassword, token },
+  });
+};
+
+

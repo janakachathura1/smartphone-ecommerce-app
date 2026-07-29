@@ -23,6 +23,8 @@ const schema = z.object({
   path: ['confirmPassword'],
 });
 
+import { GoogleLogin } from '@react-oauth/google';
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register: registerUser, isLoading } = useAuthStore();
@@ -44,6 +46,20 @@ export default function RegisterPage() {
   const onSubmit = async ({ confirmPassword, ...data }) => {
     const result = await registerUser(data);
     if (result.success) navigate('/');
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const res = await api.post('/auth/google', { credential: credentialResponse.credential });
+      if (res.data.success) {
+        localStorage.setItem('token', res.data.data.token);
+        useAuthStore.setState({ user: res.data.data.user, isAuthenticated: true });
+        toast.success(`Welcome, ${res.data.data.user.firstName}!`);
+        navigate('/');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Google registration failed');
+    }
   };
 
   const handleSocialRegister = (provider) => {
@@ -145,23 +161,18 @@ export default function RegisterPage() {
             <span className="relative bg-white px-4 text-xs text-secondary-400 uppercase tracking-wider font-semibold">Or register with</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-              type="button" 
-              onClick={() => handleSocialRegister('Google')}
-              className="flex items-center justify-center gap-2 border border-secondary-200 rounded-xl py-3 hover:bg-secondary-50 transition-colors"
-            >
-              <FcGoogle size={20} />
-              <span className="text-sm font-semibold text-secondary-700">Google</span>
-            </button>
-            <button 
-              type="button" 
-              onClick={() => handleSocialRegister('Facebook')}
-              className="flex items-center justify-center gap-2 border border-secondary-200 rounded-xl py-3 hover:bg-secondary-50 transition-colors"
-            >
-              <FaFacebook size={20} className="text-[#1877F2]" />
-              <span className="text-sm font-semibold text-secondary-700">Facebook</span>
-            </button>
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-center w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Google Sign In failed')}
+                theme="outline"
+                shape="pill"
+                size="large"
+                width="100%"
+                text="signup_with"
+              />
+            </div>
           </div>
 
           <p className="text-center text-secondary-500 text-sm mt-8">
