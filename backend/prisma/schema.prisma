@@ -41,7 +41,7 @@ model Address {
   city      String
   state     String
   zipCode   String
-  country   String  @default("Bangladesh")
+  country   String  @default("Sri Lanka")
   isDefault Boolean @default(false)
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)

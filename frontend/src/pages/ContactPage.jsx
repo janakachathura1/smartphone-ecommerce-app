@@ -128,8 +128,8 @@ export default function ContactPage() {
     {
       icon: RiMapPinLine,
       title: 'Visit Our Store',
-      desc: '123 Tech Street, Dhaka',
-      subtitle: 'Bangladesh 1200',
+      desc: '123 Tech Street, Colombo',
+      subtitle: 'Sri Lanka',
       link: '#map-section',
       gradient: 'from-violet-500 to-purple-400',
       bgLight: 'bg-violet-50',
@@ -438,8 +438,8 @@ export default function ContactPage() {
                     <h4 className="font-black text-lg tracking-tight text-secondary-950">Store Location</h4>
                   </div>
                   <p className="text-secondary-500 text-sm font-medium leading-relaxed mb-5">
-                    123 Tech Street, Gulshan-2<br />
-                    Dhaka, Bangladesh 1200
+                    123 Tech Street, Galle Road<br />
+                    Colombo 03, Sri Lanka
                   </p>
                   <a
                     href="https://maps.google.com"

@@ -9,7 +9,7 @@ import UserLayout from './UserLayout';
 export default function AddressesPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ label: 'Home', fullName: '', phone: '', street: '', city: '', state: '', zipCode: '', country: 'Bangladesh', isDefault: false });
+  const [form, setForm] = useState({ label: 'Home', fullName: '', phone: '', street: '', city: '', state: '', zipCode: '', country: 'Sri Lanka', isDefault: false });
 
   const { data, isLoading } = useQuery({
     queryKey: ['addresses'],
@@ -23,7 +23,7 @@ export default function AddressesPage() {
       toast.success('Address saved!');
       qc.invalidateQueries(['addresses']);
       setShowForm(false);
-      setForm({ label: 'Home', fullName: '', phone: '', street: '', city: '', state: '', zipCode: '', country: 'Bangladesh', isDefault: false });
+      setForm({ label: 'Home', fullName: '', phone: '', street: '', city: '', state: '', zipCode: '', country: 'Sri Lanka', isDefault: false });
     } catch {
       toast.error('Failed to save address');
     }
@@ -66,13 +66,13 @@ export default function AddressesPage() {
                   <option>Home</option><option>Work</option><option>Other</option>
                 </select>
               </div>
-              {f('fullName', 'Full Name', 'John Doe')}
-              {f('phone', 'Phone', '+880 170 000 0000')}
-              <div className="col-span-2">{f('street', 'Street Address', '123 Main Street')}</div>
-              {f('city', 'City', 'Dhaka')}
-              {f('state', 'State/Division', 'Dhaka Division')}
-              {f('zipCode', 'Zip Code', '1200')}
-              {f('country', 'Country', 'Bangladesh')}
+              {f('fullName', 'Full Name', 'Kamal Perera')}
+              {f('phone', 'Phone', '+94 77 123 4567')}
+              <div className="col-span-2">{f('street', 'Street Address', '123 Galle Road')}</div>
+              {f('city', 'City', 'Colombo')}
+              {f('state', 'State/Province', 'Western Province')}
+              {f('zipCode', 'Zip Code', '00300')}
+              {f('country', 'Country', 'Sri Lanka')}
             </div>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />

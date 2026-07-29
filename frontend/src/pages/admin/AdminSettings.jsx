@@ -50,7 +50,7 @@ export default function AdminSettings() {
         promoBanners: settings.promoBanners || [],
         footerTagline: settings.footerTagline || 'Premium Mobile Shop',
         footerDescription: settings.footerDescription || 'Your premium destination for the latest smartphones. Shop Apple, Samsung, Xiaomi, OnePlus & more.',
-        footerAddress: settings.footerAddress || '123 Tech Street, Dhaka, Bangladesh 1200',
+        footerAddress: settings.footerAddress || '123 Tech Street, Colombo, Sri Lanka',
         contactPhone: settings.contactPhone || settings.adminPhone || '',
         contactEmail: settings.contactEmail || settings.adminEmail || '',
         socialFacebook: settings.socialFacebook || '#',

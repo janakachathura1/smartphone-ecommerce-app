@@ -120,11 +120,11 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <RiMapPinLine size={18} className="text-primary-400 flex-shrink-0 mt-0.5" />
-                <span className="text-secondary-400 text-sm">{settings?.footerAddress || '123 Tech Street, Dhaka, Bangladesh 1200'}</span>
+                <span className="text-secondary-400 text-sm">{settings?.footerAddress || '123 Tech Street, Colombo, Sri Lanka'}</span>
               </li>
               <li className="flex items-center gap-3">
                 <RiPhoneLine size={18} className="text-primary-400 flex-shrink-0" />
-                <a href={`tel:${(settings?.adminPhone || '+8801700000000').replace(/[^+\d]/g, '')}`} className="text-secondary-400 hover:text-white text-sm transition-colors">{settings?.adminPhone || '+880 170 000 0000'}</a>
+                <a href={`tel:${(settings?.adminPhone || '+94770000000').replace(/[^+\d]/g, '')}`} className="text-secondary-400 hover:text-white text-sm transition-colors">{settings?.adminPhone || '+94 77 000 0000'}</a>
               </li>
               <li className="flex items-center gap-3">
                 <RiMailLine size={18} className="text-primary-400 flex-shrink-0" />

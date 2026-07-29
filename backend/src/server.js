@@ -85,7 +85,7 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
 });
 
-// Error handler
+// Error handlercd
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
