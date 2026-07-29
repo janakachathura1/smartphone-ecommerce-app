@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { RiUserLine, RiShoppingBagLine, RiShoppingCartLine, RiMoneyDollarCircleLine, RiAlertLine } from 'react-icons/ri';
 import api from '../../lib/api';
@@ -70,10 +71,40 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-secondary-900">Dashboard Overview</h1>
-        <p className="text-secondary-500 text-sm mt-1">Welcome back, Admin! Here's what's happening today.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-secondary-900">Dashboard Overview</h1>
+          <p className="text-secondary-500 text-sm mt-1">Welcome back, Admin! Here's what's happening today.</p>
+        </div>
       </div>
+
+      {/* Prominent Low Stock Alert Banner */}
+      {lowStockProducts.length > 0 && (
+        <div className="bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5 border border-red-200">
+                <RiAlertLine size={22} />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-red-900 text-base flex items-center gap-2">
+                  <span>Critical Low Stock Warning</span>
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{lowStockProducts.length} Alert(s)</span>
+                </h3>
+                <p className="text-red-700 text-xs mt-1 font-medium">
+                  {lowStockProducts.length} smartphone(s) have 5 or fewer items remaining in stock. Please restock to prevent stockouts!
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/admin/products"
+              className="btn-primary py-2.5 px-5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white border-0 shadow-md flex-shrink-0 flex items-center justify-center gap-1.5"
+            >
+              Restock Products Now
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

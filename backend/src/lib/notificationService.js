@@ -244,3 +244,41 @@ export const sendPasswordResetEmail = async (userEmail, resetTokenOrOtp, firstNa
     text: `Your TechPulse password reset verification code is: ${resetTokenOrOtp}. This code expires in 15 minutes.`,
   });
 };
+
+/**
+ * Send Low Stock Alert Email to Admin
+ */
+export const sendLowStockAlertEmail = async ({ productName, currentStock, variantInfo, adminEmail }) => {
+  const targetEmail = adminEmail || process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'UltraMobile@gmail.com';
+  const html = `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 20px; border: 1px solid #fca5a5; border-radius: 12px; background-color: #fff1f2;">
+      <div style="text-align: center; padding-bottom: 15px; border-bottom: 2px solid #ef4444;">
+        <h2 style="color: #991b1b; margin: 0; font-size: 22px;">⚠️ Low Stock Inventory Alert</h2>
+        <p style="color: #b91c1c; margin: 5px 0 0 0; font-weight: 600;">TechPulse Mobile Store Admin Alert</p>
+      </div>
+      <div style="padding: 20px 0;">
+        <p style="color: #7f1d1d; font-size: 15px; font-weight: 600;">Attention Admin,</p>
+        <p style="color: #991b1b; line-height: 1.5;">The inventory stock for a smartphone in your catalog has dropped to a critical level (≤ 5 remaining):</p>
+        
+        <div style="background-color: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #fecdd3; margin: 15px 0;">
+          <h3 style="color: #0f172a; margin: 0 0 8px 0; font-size: 16px;">${productName}</h3>
+          ${variantInfo ? `<p style="margin: 4px 0; color: #475569; font-size: 13px;">Variant: <strong>${variantInfo}</strong></p>` : ''}
+          <p style="margin: 4px 0; color: #ef4444; font-size: 15px; font-weight: 800;">Current Stock: ${currentStock} available</p>
+        </div>
+
+        <p style="color: #991b1b; font-size: 13px;">Please restock this item soon from your Admin Products Management dashboard to avoid running out of inventory for customers.</p>
+      </div>
+      <div style="text-align: center; padding-top: 15px; border-top: 1px solid #fecdd3; color: #9f1239; font-size: 12px;">
+        <p>© ${new Date().getFullYear()} TechPulse Inventory Monitoring System</p>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    to: targetEmail,
+    subject: `⚠️ Low Stock Warning: ${productName} (Only ${currentStock} left)`,
+    html,
+    text: `LOW STOCK ALERT: ${productName} ${variantInfo || ''} stock has dropped to ${currentStock}. Please restock from Admin Dashboard.`,
+  });
+};
+

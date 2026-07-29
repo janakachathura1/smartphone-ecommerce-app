@@ -10,6 +10,8 @@ import api from '../lib/api';
 import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton, SectionHeader } from '../components/ui';
 import ScrollReveal from '../components/ScrollReveal';
+import RecentlyViewedSection from '../components/RecentlyViewedSection';
+import RecommendedSection from '../components/RecommendedSection';
 
 const FEATURES = [
   { iconName: 'RiShieldCheckLine', title: '2-Year Warranty', desc: 'All products come with full manufacturer warranty.' },
@@ -535,6 +537,12 @@ export default function HomePage() {
           <div className="absolute inset-y-0 right-0 w-16 sm:w-40 lg:w-80 bg-gradient-to-l from-white via-white/50 to-transparent z-10" />
         </div>
       </section>
+
+      {/* Recommended For You Section */}
+      <RecommendedSection />
+
+      {/* Recently Viewed Products Section */}
+      <RecentlyViewedSection />
 
       {/* Testimonials */}
       <section className="py-16">

@@ -16,6 +16,9 @@ import { PageLoader, ErrorState, SectionHeader } from '../components/ui';
 import ProductCard from '../components/ProductCard';
 import toast from 'react-hot-toast';
 
+import { useRecentlyViewedStore } from '../store/useRecentlyViewedStore';
+import RecentlyViewedSection from '../components/RecentlyViewedSection';
+
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -23,6 +26,7 @@ export default function ProductDetailPage() {
   const { addToCart, isLoading: cartLoading } = useCartStore();
   const { toggle, isInWishlist } = useWishlistStore();
   const { addToCompare, isInCompare, removeFromCompare } = useCompareStore();
+  const { addViewedProduct } = useRecentlyViewedStore();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState('');
@@ -35,6 +39,12 @@ export default function ProductDetailPage() {
     queryKey: ['product', slug],
     queryFn: () => api.get(`/products/${slug}`).then((r) => r.data.data.product),
   });
+
+  useEffect(() => {
+    if (data) {
+      addViewedProduct(data);
+    }
+  }, [data]);
 
   const reviewMutation = useMutation({
     mutationFn: ({ productId, rating, comment }) => api.post(`/products/${productId}/reviews`, { rating, comment }),
@@ -466,13 +476,16 @@ export default function ProductDetailPage() {
         {relatedData?.length > 1 && (
           <div>
             <SectionHeader title="Related Products" subtitle="More from the same brand" />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {relatedData.filter((p) => p.id !== product.id).slice(0, 4).map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
           </div>
         )}
+
+        {/* Recently Viewed Products */}
+        <RecentlyViewedSection excludeId={product?.id} />
       </div>
     </div>
   );

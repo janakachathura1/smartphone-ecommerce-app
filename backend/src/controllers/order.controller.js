@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { getUnitPrice } from './cart.controller.js';
 import { v4 as uuidv4 } from 'uuid';
-import { sendOrderConfirmationNotifications, sendOrderStatusUpdateNotifications } from '../lib/notificationService.js';
+import { sendOrderConfirmationNotifications, sendOrderStatusUpdateNotifications, sendLowStockAlertEmail } from '../lib/notificationService.js';
 
 const generateOrderNumber = () => {
   const prefix = 'TP';
@@ -103,17 +103,32 @@ export const createOrder = async (req, res) => {
 
   // Deduct stock and increment soldCount
   for (const item of cart.items) {
-    await prisma.product.update({
+    const updatedProd = await prisma.product.update({
       where: { id: item.productId },
       data: { stock: { decrement: item.quantity }, soldCount: { increment: item.quantity } },
     });
 
+    if (updatedProd.stock <= 5) {
+      sendLowStockAlertEmail({
+        productName: updatedProd.name,
+        currentStock: updatedProd.stock,
+      }).catch((err) => console.error('Low stock alert error:', err));
+    }
+
     if (item.variantId || item.variant?.id) {
       const vId = item.variantId || item.variant.id;
-      await prisma.productVariant.update({
+      const updatedVariant = await prisma.productVariant.update({
         where: { id: vId },
         data: { stock: { decrement: item.quantity } },
-      }).catch(() => {});
+      }).catch(() => null);
+
+      if (updatedVariant && updatedVariant.stock <= 5) {
+        sendLowStockAlertEmail({
+          productName: updatedProd.name,
+          variantInfo: `${updatedVariant.color || ''} ${updatedVariant.storage || ''}`.trim(),
+          currentStock: updatedVariant.stock,
+        }).catch((err) => console.error('Variant low stock alert error:', err));
+      }
     }
   }
 
