@@ -86,6 +86,7 @@ export const getProducts = async (req, res) => {
         brand: { select: { id: true, name: true, slug: true, logo: true } },
         category: { select: { id: true, name: true, slug: true } },
         images: { where: { isPrimary: true }, take: 1 },
+        variants: true,
       },
     }),
     prisma.product.count({ where }),
@@ -113,6 +114,7 @@ export const getProductBySlug = async (req, res) => {
       brand: { select: { id: true, name: true, slug: true, logo: true } },
       category: { select: { id: true, name: true, slug: true } },
       images: { orderBy: { sortOrder: 'asc' } },
+      variants: { orderBy: [{ color: 'asc' }, { storage: 'asc' }] },
       reviews: {
         where: { isApproved: true },
         include: { user: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
@@ -132,6 +134,7 @@ export const getProductById = async (req, res) => {
       brand: true,
       category: true,
       images: { orderBy: { sortOrder: 'asc' } },
+      variants: { orderBy: [{ color: 'asc' }, { storage: 'asc' }] },
     },
   });
   if (!product) throw new AppError('Product not found.', 404);
@@ -178,10 +181,15 @@ export const getBestSellers = async (req, res) => {
 };
 
 export const createProduct = async (req, res) => {
-  const { images = [], ...data } = req.body;
+  const { images = [], variants = [], ...data } = req.body;
 
   if (data.basePrice && data.discountPercent !== undefined) {
     data.finalPrice = data.basePrice * (1 - data.discountPercent / 100);
+  }
+
+  // Calculate total stock if variants provided
+  if (variants && variants.length > 0) {
+    data.stock = variants.reduce((acc, v) => acc + (parseInt(v.stock) || 0), 0);
   }
 
   const product = await prisma.product.create({
@@ -195,15 +203,26 @@ export const createProduct = async (req, res) => {
           sortOrder: i,
         })),
       },
+      ...(variants.length > 0 && {
+        variants: {
+          create: variants.map((v) => ({
+            color: v.color,
+            storage: v.storage,
+            stock: parseInt(v.stock) || 0,
+            price: v.price ? parseFloat(v.price) : null,
+            sku: v.sku || `${data.sku || 'SKU'}-${(v.color || '').toUpperCase()}-${(v.storage || '').toUpperCase()}`,
+          })),
+        },
+      }),
     },
-    include: { images: true, brand: true, category: true },
+    include: { images: true, brand: true, category: true, variants: true },
   });
   res.status(201).json({ success: true, data: { product } });
 };
 
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { images, ...data } = req.body;
+  const { images, variants, ...data } = req.body;
 
   if (data.basePrice && data.discountPercent !== undefined) {
     data.finalPrice = parseFloat(data.basePrice) * (1 - parseFloat(data.discountPercent) / 100);
@@ -221,10 +240,24 @@ export const updateProduct = async (req, res) => {
     };
   }
 
+  if (variants) {
+    data.stock = variants.reduce((acc, v) => acc + (parseInt(v.stock) || 0), 0);
+    data.variants = {
+      deleteMany: {},
+      create: variants.map((v) => ({
+        color: v.color,
+        storage: v.storage,
+        stock: parseInt(v.stock) || 0,
+        price: v.price ? parseFloat(v.price) : null,
+        sku: v.sku || undefined,
+      })),
+    };
+  }
+
   const product = await prisma.product.update({
     where: { id },
     data,
-    include: { images: true, brand: true, category: true },
+    include: { images: true, brand: true, category: true, variants: true },
   });
   res.json({ success: true, data: { product } });
 };

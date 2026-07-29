@@ -62,9 +62,33 @@ export const addToCart = async (req, res) => {
   const { productId, quantity = 1, color, storage } = req.body;
   if (!productId) throw new AppError('Product ID is required.', 400);
 
-  const product = await prisma.product.findUnique({ where: { id: productId } });
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { variants: true },
+  });
   if (!product) throw new AppError('Product not found.', 404);
-  if (product.stock < quantity) throw new AppError(`Only ${product.stock} items available in stock.`, 400);
+
+  // Find matching variant if color or storage provided
+  let variant = null;
+  if (color || storage) {
+    variant = product.variants.find(
+      (v) =>
+        (!color || (v.color && v.color.toLowerCase() === color.toLowerCase())) &&
+        (!storage || (v.storage && v.storage.toLowerCase() === storage.toLowerCase()))
+    );
+  }
+
+  const availableStock = variant ? variant.stock : product.stock;
+  const variantDesc = [color, storage].filter(Boolean).join(' - ');
+
+  if (availableStock < quantity) {
+    throw new AppError(
+      availableStock === 0
+        ? `${product.name} ${variantDesc ? `(${variantDesc})` : ''} is currently out of stock.`
+        : `Only ${availableStock} units available for ${variantDesc || product.name}.`,
+      400
+    );
+  }
 
   let cart = await prisma.cart.findUnique({ where: { userId: req.user.id } });
   if (!cart) cart = await prisma.cart.create({ data: { userId: req.user.id } });
@@ -76,15 +100,17 @@ export const addToCart = async (req, res) => {
   let item;
   if (existingItem) {
     const newQty = existingItem.quantity + parseInt(quantity);
-    if (product.stock < newQty) throw new AppError(`Only ${product.stock} items available.`, 400);
+    if (availableStock < newQty) {
+      throw new AppError(`Only ${availableStock} units available for ${variantDesc || product.name}.`, 400);
+    }
     item = await prisma.cartItem.update({
       where: { id: existingItem.id },
-      data: { quantity: newQty },
+      data: { quantity: newQty, variantId: variant?.id || null },
       include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } },
     });
   } else {
     item = await prisma.cartItem.create({
-      data: { cartId: cart.id, productId, quantity: parseInt(quantity), color, storage },
+      data: { cartId: cart.id, productId, variantId: variant?.id || null, quantity: parseInt(quantity), color, storage },
       include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } },
     });
   }
@@ -100,10 +126,12 @@ export const updateCartItem = async (req, res) => {
 
   const item = await prisma.cartItem.findUnique({
     where: { id: itemId },
-    include: { cart: true, product: true },
+    include: { cart: true, product: { include: { variants: true } }, variant: true },
   });
   if (!item || item.cart.userId !== req.user.id) throw new AppError('Cart item not found.', 404);
-  if (item.product.stock < quantity) throw new AppError(`Only ${item.product.stock} items available.`, 400);
+
+  const availableStock = item.variant ? item.variant.stock : item.product.stock;
+  if (availableStock < quantity) throw new AppError(`Only ${availableStock} items available for this variant.`, 400);
 
   const updated = await prisma.cartItem.update({
     where: { id: itemId },

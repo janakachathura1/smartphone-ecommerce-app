@@ -69,6 +69,17 @@ export default function ProductDetailPage() {
   }
   const currentFinalPrice = currentBasePrice * (1 - (product?.discountPercent || 0) / 100);
 
+  const selectedVariant = product?.variants?.find(
+    (v) =>
+      (!selectedColor || (v.color && v.color.toLowerCase() === selectedColor.toLowerCase())) &&
+      (!selectedStorage || (v.storage && v.storage.toLowerCase() === selectedStorage.toLowerCase()))
+  );
+
+  const isVariantSelected = Boolean(selectedColor || selectedStorage);
+  const currentVariantStock = selectedVariant
+    ? selectedVariant.stock
+    : (product?.variants?.length > 0 && selectedColor && selectedStorage ? 0 : product?.stock ?? 0);
+
   const inWishlist = product?.id ? isInWishlist(product.id) : false;
   
   const images = product?.images?.length > 0
@@ -119,7 +130,6 @@ export default function ProductDetailPage() {
   return (
     <div className="bg-white min-h-screen text-secondary-950">
       <div className="container-custom py-12">
-        {/* Breadcrumb */}
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 text-sm mb-10 group font-bold uppercase tracking-widest text-secondary-400">
           <Link to="/" className="hover:text-primary-600 transition-colors">Home</Link>
@@ -252,26 +262,30 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Quantity */}
-            <div className="flex items-center gap-4">
+            {/* Quantity & Stock Status */}
+            <div className="flex items-center gap-4 flex-wrap">
               <p className="text-sm font-semibold text-secondary-700">Quantity:</p>
               <div className="flex items-center border border-secondary-200 rounded-xl overflow-hidden">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-secondary-100 transition-colors text-secondary-700 font-bold text-lg">-</button>
                 <span className="w-12 text-center font-semibold text-secondary-900">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} className="w-10 h-10 flex items-center justify-center hover:bg-secondary-100 transition-colors text-secondary-700 font-bold text-lg">+</button>
+                <button onClick={() => setQuantity(Math.min(currentVariantStock || 1, quantity + 1))} className="w-10 h-10 flex items-center justify-center hover:bg-secondary-100 transition-colors text-secondary-700 font-bold text-lg">+</button>
               </div>
-              <span className={`text-sm font-medium ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+              <span className={`text-sm font-bold px-3 py-1.5 rounded-xl ${currentVariantStock > 0 ? (currentVariantStock <= 3 ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-green-50 text-green-600 border border-green-200') : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                {currentVariantStock > 0
+                  ? (isVariantSelected && selectedVariant
+                      ? `Variant Stock: ${currentVariantStock} available`
+                      : `Total Stock: ${currentVariantStock} available`)
+                  : (isVariantSelected ? 'Selected Variant Out of Stock' : 'Out of Stock')}
               </span>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3 flex-wrap">
-              <button onClick={handleAddToCart} disabled={cartLoading || product.stock === 0} className="flex-1 btn-outline py-3.5">
+              <button onClick={handleAddToCart} disabled={cartLoading || currentVariantStock === 0} className="flex-1 btn-outline py-3.5 disabled:opacity-50 disabled:cursor-not-allowed">
                 <RiShoppingCartLine size={20} />
-                Add to Cart
+                {currentVariantStock === 0 ? 'Out of Stock' : 'Add to Cart'}
               </button>
-              <button onClick={handleBuyNow} disabled={cartLoading || product.stock === 0} className="flex-1 btn-primary py-3.5">
+              <button onClick={handleBuyNow} disabled={cartLoading || currentVariantStock === 0} className="flex-1 btn-primary py-3.5 disabled:opacity-50 disabled:cursor-not-allowed">
                 <RiFlashlightLine size={20} />
                 Buy Now
               </button>

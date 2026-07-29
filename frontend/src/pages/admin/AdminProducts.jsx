@@ -68,7 +68,8 @@ export default function AdminProducts() {
     setForm({
       ...EMPTY_PRODUCT,
       categoryId: selectedCategoryId || '',
-      brandId: selectedBrandId || ''
+      brandId: selectedBrandId || '',
+      variants: [],
     });
     setShowForm(true);
   };
@@ -76,7 +77,13 @@ export default function AdminProducts() {
     setEditing(p);
     const colors = typeof p.colors === 'string' ? p.colors : JSON.stringify(p.colors || []);
     const storageOptions = typeof p.storageOptions === 'string' ? p.storageOptions : JSON.stringify(p.storageOptions || []);
-    setForm({ ...p, colors, storageOptions, images: p.images?.map(img => img.url) || [] });
+    setForm({
+      ...p,
+      colors,
+      storageOptions,
+      images: p.images?.map(img => img.url) || [],
+      variants: p.variants?.map(v => ({ color: v.color || '', storage: v.storage || '', stock: v.stock || 0, price: v.price || '' })) || []
+    });
     setShowForm(true);
   };
   const closeForm = () => { setShowForm(false); setEditing(null); };
@@ -100,6 +107,7 @@ export default function AdminProducts() {
         isNewArrival: form.isNewArrival === true || form.isNewArrival === 'true',
         isBestSeller: form.isBestSeller === true || form.isBestSeller === 'true',
         images: form.images?.filter(Boolean) || [],
+        variants: form.variants || [],
       };
       if (editing) {
         await api.put(`/products/${editing.id}`, payload);
@@ -434,6 +442,80 @@ export default function AdminProducts() {
                     });
                   })()}
                   <p className="text-[10px] text-secondary-500 mt-3 italic">If price is left empty, the standard base price will be used instead.</p>
+                <div className="col-span-2 bg-primary-50/50 p-4 rounded-xl border border-primary-200">
+                  <div className="flex justify-between items-center mb-3">
+                    <div>
+                      <label className="text-xs font-black text-primary-950 uppercase tracking-widest block">Variant Level Stock Tracking</label>
+                      <p className="text-[10px] text-primary-700">Specify exact stock per Color & Storage combination (e.g. Red / 128GB)</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentVariants = form.variants || [];
+                        setForm({ ...form, variants: [...currentVariants, { color: '', storage: '', stock: 5, price: '' }] });
+                      }}
+                      className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700 transition font-bold flex items-center gap-1"
+                    >
+                      + Add Variant Stock
+                    </button>
+                  </div>
+
+                  {(!form.variants || form.variants.length === 0) ? (
+                    <p className="text-xs text-secondary-500 italic mt-2">No variant stock items added. App will use global fallback stock.</p>
+                  ) : (
+                    <div className="space-y-2 mt-2">
+                      {form.variants.map((v, idx) => (
+                        <div key={idx} className="flex gap-2 items-center bg-white p-2.5 rounded-xl border border-primary-100 shadow-sm">
+                          <input
+                            type="text"
+                            placeholder="Color (e.g. Red)"
+                            value={v.color || ''}
+                            onChange={(e) => {
+                              const updated = [...form.variants];
+                              updated[idx].color = e.target.value;
+                              setForm({ ...form, variants: updated });
+                            }}
+                            className="input text-xs py-1.5 flex-1"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Storage (e.g. 128GB)"
+                            value={v.storage || ''}
+                            onChange={(e) => {
+                              const updated = [...form.variants];
+                              updated[idx].storage = e.target.value;
+                              setForm({ ...form, variants: updated });
+                            }}
+                            className="input text-xs py-1.5 flex-1"
+                          />
+                          <div className="w-24">
+                            <input
+                              type="number"
+                              placeholder="Stock"
+                              value={v.stock}
+                              onChange={(e) => {
+                                const updated = [...form.variants];
+                                updated[idx].stock = parseInt(e.target.value) || 0;
+                                setForm({ ...form, variants: updated });
+                              }}
+                              className="input text-xs py-1.5 font-bold text-center text-primary-700"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...form.variants];
+                              updated.splice(idx, 1);
+                              setForm({ ...form, variants: updated });
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1.5 bg-red-50 rounded-lg transition"
+                          >
+                            <RiDeleteBin6Line size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {[['has5G', '5G Enabled'], ['isFeatured', 'Featured'], ['isNewArrival', 'New Arrival'], ['isBestSeller', 'Best Seller']].map(([k, label]) => (
                   <label key={k} className="flex items-center gap-2 cursor-pointer">

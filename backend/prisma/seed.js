@@ -383,6 +383,34 @@ async function main() {
       },
     });
 
+    // Generate Variants for each color and storage combination
+    const colorList = p.colors ? JSON.parse(p.colors) : ['Standard'];
+    const storageList = p.storageOptions ? JSON.parse(p.storageOptions) : ['Standard'];
+    let totalVariantStock = 0;
+
+    for (const c of colorList) {
+      for (const s of storageList) {
+        const variantStock = Math.floor(Math.random() * 10) + 1; // 1 to 10 stock per variant
+        totalVariantStock += variantStock;
+
+        await prisma.productVariant.create({
+          data: {
+            productId: product.id,
+            color: c,
+            storage: s,
+            sku: `${p.sku}-${c.replace(/\s+/g, '').toUpperCase()}-${s.toUpperCase()}`,
+            stock: variantStock,
+          },
+        });
+      }
+    }
+
+    // Sync total stock to product model
+    await prisma.product.update({
+      where: { id: product.id },
+      data: { stock: totalVariantStock },
+    });
+
     for (let i = 0; i < images.length; i++) {
       await prisma.productImage.create({
         data: {

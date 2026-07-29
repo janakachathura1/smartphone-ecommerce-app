@@ -18,7 +18,7 @@ export const createOrder = async (req, res) => {
   const cart = await prisma.cart.findUnique({
     where: { userId: req.user.id },
     include: {
-      items: { include: { product: true } },
+      items: { include: { product: { include: { variants: true } }, variant: true } },
     },
   });
 
@@ -26,8 +26,10 @@ export const createOrder = async (req, res) => {
 
   // Validate stock
   for (const item of cart.items) {
-    if (item.product.stock < item.quantity) {
-      throw new AppError(`Insufficient stock for ${item.product.name}.`, 400);
+    const availableStock = item.variant ? item.variant.stock : item.product.stock;
+    if (availableStock < item.quantity) {
+      const desc = [item.color, item.storage].filter(Boolean).join(' - ');
+      throw new AppError(`Insufficient stock for ${item.product.name} ${desc ? `(${desc})` : ''}. Only ${availableStock} available.`, 400);
     }
   }
 
@@ -38,6 +40,7 @@ export const createOrder = async (req, res) => {
     subtotal += totalPrice;
     return {
       productId: item.productId,
+      variantId: item.variantId || item.variant?.id || null,
       productName: item.product.name,
       productImage: null,
       color: item.color,
@@ -104,6 +107,14 @@ export const createOrder = async (req, res) => {
       where: { id: item.productId },
       data: { stock: { decrement: item.quantity }, soldCount: { increment: item.quantity } },
     });
+
+    if (item.variantId || item.variant?.id) {
+      const vId = item.variantId || item.variant.id;
+      await prisma.productVariant.update({
+        where: { id: vId },
+        data: { stock: { decrement: item.quantity } },
+      }).catch(() => {});
+    }
   }
 
   // Clear cart
