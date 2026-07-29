@@ -116,6 +116,43 @@ model Product {
   colors         String? // JSON-encoded array of colors
   storageOptions String? // JSON-encoded array of storage options
 
+  // Expanded Specifications
+  model             String?
+  barcode           String?
+  videoUrl          String?
+  threeSixtyUrl     String?
+  installmentPrice  Float?
+  displaySize       String?
+  displayType       String?
+  resolution        String?
+  refreshRate       String?
+  chipset           String?
+  cpu               String?
+  gpu               String?
+  videoRecording    String?
+  fastCharging      String?
+  wirelessCharging  String?
+  wifi              String?
+  bluetooth         String?
+  nfc               Boolean @default(false)
+  usbType           String?
+  osVersion         String?
+  simType           String?
+  security          String?
+  buildMaterial     String?
+  waterResistance   String?
+  boxItems          String?
+  warrantyPeriod    String?
+  warrantyType      String?
+  warrantyProvider  String?
+  deliveryInfo      String?
+  deliveryFree      Boolean @default(true)
+  deliveryTime      String?
+  storePickup       Boolean @default(false)
+  paymentMethods    String?
+  metaTitle         String?
+  metaDescription   String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

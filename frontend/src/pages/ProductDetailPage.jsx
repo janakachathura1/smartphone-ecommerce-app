@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   RiHeartLine, RiHeartFill, RiShoppingCartLine, RiFlashlightLine,
   RiStarFill, RiStarLine, RiShieldCheckLine, RiTruckLine, RiArrowLeftLine,
-  RiCheckLine, RiScales3Line,
+  RiCheckLine, RiScales3Line, RiBankCardLine, RiInboxArchiveLine,
 } from 'react-icons/ri';
 import api from '../lib/api';
 import { formatPrice, parseColors, parseStorageOptions } from '../lib/utils';
@@ -122,21 +122,78 @@ export default function ProductDetailPage() {
     reviewMutation.mutate({ productId: product.id, ...reviewForm });
   };
 
-  const SPEC_ROWS = [
-    ['Category', product.category?.name],
-    ['Brand', product.brand?.name],
-    ['Operating System', product.os],
-    ['Processor', product.processor],
-    ['RAM', product.ram],
-    ['Storage', product.storage],
-    ['Display', product.display],
-    ['Main Camera', product.camera],
-    ['Front Camera', product.frontCamera],
-    ['Battery', product.battery],
-    ['5G Support', product.has5G ? 'Yes' : 'No'],
-    ['Weight', product.weight],
-    ['Dimensions', product.dimensions],
-  ].filter(([, val]) => val);
+  const specGroups = [
+    {
+      title: 'Basic Info',
+      specs: [
+        ['Brand', product?.brand?.name],
+        ['Model', product?.model],
+        ['SKU / Product Code', product?.sku],
+        ['Barcode', product?.barcode],
+      ]
+    },
+    {
+      title: 'Display',
+      specs: [
+        ['Display Size', product?.displaySize],
+        ['Display Type', product?.displayType],
+        ['Resolution', product?.resolution],
+        ['Refresh Rate', product?.refreshRate],
+        ['Display Summary', product?.display],
+      ]
+    },
+    {
+      title: 'Processor',
+      specs: [
+        ['Chipset', product?.chipset],
+        ['CPU Details', product?.cpu],
+        ['GPU Details', product?.gpu],
+        ['Processor Summary', product?.processor],
+      ]
+    },
+    {
+      title: 'Camera',
+      specs: [
+        ['Rear Camera', product?.camera],
+        ['Front Camera', product?.frontCamera],
+        ['Video Recording', product?.videoRecording],
+      ]
+    },
+    {
+      title: 'Battery & Charging',
+      specs: [
+        ['Battery Capacity', product?.battery],
+        ['Fast Charging', product?.fastCharging],
+        ['Wireless Charging', product?.wirelessCharging],
+      ]
+    },
+    {
+      title: 'Connectivity & Security',
+      specs: [
+        ['5G Support', product?.has5G ? 'Yes' : 'No'],
+        ['Wi-Fi', product?.wifi],
+        ['Bluetooth', product?.bluetooth],
+        ['NFC', product?.nfc ? 'Yes' : 'No'],
+        ['USB Port Type', product?.usbType],
+        ['SIM Details', product?.simType],
+        ['Security', product?.security],
+      ]
+    },
+    {
+      title: 'Software & Physical Spec',
+      specs: [
+        ['Operating System', product?.os],
+        ['OS Version', product?.osVersion],
+        ['Weight', product?.weight],
+        ['Dimensions', product?.dimensions],
+        ['Build Material', product?.buildMaterial],
+        ['Water Resistance', product?.waterResistance],
+      ]
+    }
+  ].map(group => ({
+    ...group,
+    specs: group.specs.filter(([, val]) => val)
+  })).filter(group => group.specs.length > 0);
 
   return (
     <div className="bg-white min-h-screen text-secondary-950">
@@ -318,22 +375,34 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
-            {/* Trust badges */}
+            {/* Dynamic specs trust badges */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2.5 p-3 bg-secondary-50 rounded-xl">
                 <RiShieldCheckLine size={20} className="text-green-600" />
                 <div>
-                  <p className="text-xs font-semibold text-secondary-800">2-Year Warranty</p>
-                  <p className="text-xs text-secondary-500">Manufacturer guaranteed</p>
+                  <p className="text-xs font-semibold text-secondary-800">
+                    {product.warrantyPeriod ? `${product.warrantyPeriod} Warranty` : 'Warranty Available'}
+                  </p>
+                  <p className="text-[10px] text-secondary-500">{product.warrantyType || 'Dealer/Company warranty'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2.5 p-3 bg-secondary-50 rounded-xl">
                 <RiTruckLine size={20} className="text-primary-600" />
                 <div>
-                  <p className="text-xs font-semibold text-secondary-800">Free Shipping</p>
-                  <p className="text-xs text-secondary-500">On orders over $500</p>
+                  <p className="text-xs font-semibold text-secondary-800">
+                    {product.deliveryFree ? 'Free Delivery' : 'Standard Shipping'}
+                  </p>
+                  <p className="text-[10px] text-secondary-500">{product.deliveryTime || '2-5 Business days'}</p>
                 </div>
               </div>
+              {product.installmentPrice && (
+                <div className="col-span-2 flex items-center gap-2.5 p-3 bg-primary-50 rounded-xl border border-primary-100">
+                  <span className="flex h-2 w-2 rounded-full bg-primary-500 animate-pulse" />
+                  <p className="text-xs font-bold text-primary-950">
+                    Installments available from {formatPrice(product.installmentPrice)} / month
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -359,29 +428,130 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12">
-            <div>
-              <h2 className="text-2xl font-black text-secondary-950 mb-6 tracking-tight flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-primary-600 rounded-full" />
-                Product Description
-              </h2>
-              <p className="text-secondary-600 leading-relaxed whitespace-pre-wrap font-medium text-lg">{product.description}</p>
-            </div>
-            <div>
-              <h2 className="text-2xl font-black text-secondary-950 mb-6 tracking-tight flex items-center gap-3">
-                <div className="w-1.5 h-8 bg-secondary-950 rounded-full" />
-                Specifications
-              </h2>
-              <div className="rounded-[2rem] border border-primary-100 overflow-hidden shadow-xl shadow-primary-100/20 bg-white">
-                <table className="w-full text-base">
-                  <tbody className="divide-y divide-primary-50">
-                    {SPEC_ROWS.map(([label, value], i) => (
-                      <tr key={label} className="group hover:bg-primary-50 transition-colors">
-                        <td className="px-6 py-4 text-secondary-500 font-bold w-1/2 text-sm uppercase tracking-widest">{label}</td>
-                        <td className="px-6 py-4 text-secondary-950 font-black">{value}</td>
-                      </tr>
+            {/* Left Column: Description & Additional Details */}
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-xl font-black text-secondary-950 mb-4 tracking-tight flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-primary-600 rounded-full" />
+                  Product Description
+                </h2>
+                <p className="text-secondary-600 leading-relaxed whitespace-pre-wrap font-medium text-sm">{product.description}</p>
+              </div>
+
+              {/* What's in the Box */}
+              {product.boxItems && (
+                <div className="bg-secondary-50/50 p-6 rounded-2xl border border-secondary-100 shadow-sm">
+                  <h3 className="text-sm font-bold text-secondary-900 mb-3 flex items-center gap-2">
+                    <RiInboxArchiveLine className="text-primary-600" size={18} />
+                    What's in the Box
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {product.boxItems.split(',').map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-secondary-700">
+                        <RiCheckLine className="text-green-500" size={14} />
+                        <span>{item.trim()}</span>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Warranty details */}
+              {(product.warrantyPeriod || product.warrantyType || product.warrantyProvider) && (
+                <div className="bg-secondary-50/50 p-6 rounded-2xl border border-secondary-100 shadow-sm">
+                  <h3 className="text-sm font-bold text-secondary-900 mb-3 flex items-center gap-2">
+                    <RiShieldCheckLine className="text-green-600" size={18} />
+                    Warranty Information
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4 text-xs">
+                    {product.warrantyPeriod && (
+                      <div>
+                        <span className="text-secondary-400 block font-semibold mb-0.5">Period</span>
+                        <span className="text-secondary-900 font-bold">{product.warrantyPeriod}</span>
+                      </div>
+                    )}
+                    {product.warrantyType && (
+                      <div>
+                        <span className="text-secondary-400 block font-semibold mb-0.5">Type</span>
+                        <span className="text-secondary-900 font-bold">{product.warrantyType}</span>
+                      </div>
+                    )}
+                    {product.warrantyProvider && (
+                      <div>
+                        <span className="text-secondary-400 block font-semibold mb-0.5">Provider</span>
+                        <span className="text-secondary-900 font-bold">{product.warrantyProvider}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Delivery & Payment Info */}
+              <div className="bg-secondary-50/50 p-6 rounded-2xl border border-secondary-100 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold text-secondary-900 flex items-center gap-2">
+                  <RiTruckLine className="text-primary-600" size={18} />
+                  Delivery & Payments
+                </h3>
+                
+                {product.deliveryInfo && (
+                  <p className="text-xs text-secondary-600 font-medium">{product.deliveryInfo}</p>
+                )}
+
+                <div className="flex flex-wrap gap-4 text-xs font-semibold">
+                  {product.storePickup && (
+                    <span className="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg border border-green-200">
+                      ✓ Store Pickup Available
+                    </span>
+                  )}
+                  {product.deliveryFree && (
+                    <span className="bg-primary-50 text-primary-700 px-3 py-1.5 rounded-lg border border-primary-200">
+                      ✓ Free Delivery Available
+                    </span>
+                  )}
+                </div>
+
+                {product.paymentMethods && (
+                  <div className="pt-2 border-t border-secondary-200">
+                    <span className="text-xs text-secondary-400 block font-semibold mb-2">Supported Payments</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.paymentMethods.split(',').map((pm, i) => (
+                        <span key={i} className="bg-white border border-secondary-200 text-secondary-700 px-2.5 py-1 rounded-md text-[10px] font-bold">
+                          {pm.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Categorized Specifications Sheet */}
+            <div>
+              <h2 className="text-xl font-black text-secondary-950 mb-4 tracking-tight flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-secondary-950 rounded-full" />
+                Technical Specifications
+              </h2>
+
+              <div className="space-y-6">
+                {specGroups.map((group) => (
+                  <div key={group.title} className="rounded-2xl border border-primary-100/80 overflow-hidden shadow-sm bg-white">
+                    <div className="bg-primary-50/40 px-4 py-2 border-b border-primary-100">
+                      <span className="text-[10px] font-black uppercase text-primary-700 tracking-wider">
+                        {group.title}
+                      </span>
+                    </div>
+                    <table className="w-full text-xs">
+                      <tbody className="divide-y divide-primary-50/50">
+                        {group.specs.map(([label, value]) => (
+                          <tr key={label} className="hover:bg-primary-50/30 transition-colors">
+                            <td className="px-4 py-2.5 text-secondary-500 font-bold w-1/3 text-[10px] uppercase tracking-wider">{label}</td>
+                            <td className="px-4 py-2.5 text-secondary-950 font-black">{value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

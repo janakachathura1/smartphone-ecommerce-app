@@ -190,7 +190,21 @@ export const createProduct = async (req, res) => {
   const { images = [], variants = [], ...data } = req.body;
 
   if (data.basePrice && data.discountPercent !== undefined) {
-    data.finalPrice = data.basePrice * (1 - data.discountPercent / 100);
+    data.finalPrice = parseFloat(data.basePrice) * (1 - parseFloat(data.discountPercent) / 100);
+  }
+
+  // Parse new fields
+  if (data.installmentPrice !== undefined && data.installmentPrice !== null) {
+    data.installmentPrice = parseFloat(data.installmentPrice) || null;
+  }
+  if (data.nfc !== undefined) {
+    data.nfc = data.nfc === true || data.nfc === 'true';
+  }
+  if (data.storePickup !== undefined) {
+    data.storePickup = data.storePickup === true || data.storePickup === 'true';
+  }
+  if (data.deliveryFree !== undefined) {
+    data.deliveryFree = data.deliveryFree === true || data.deliveryFree === 'true';
   }
 
   // Calculate total stock if variants provided
@@ -232,6 +246,20 @@ export const updateProduct = async (req, res) => {
 
   if (data.basePrice && data.discountPercent !== undefined) {
     data.finalPrice = parseFloat(data.basePrice) * (1 - parseFloat(data.discountPercent) / 100);
+  }
+
+  // Parse new fields
+  if (data.installmentPrice !== undefined && data.installmentPrice !== null) {
+    data.installmentPrice = parseFloat(data.installmentPrice) || null;
+  }
+  if (data.nfc !== undefined) {
+    data.nfc = data.nfc === true || data.nfc === 'true';
+  }
+  if (data.storePickup !== undefined) {
+    data.storePickup = data.storePickup === true || data.storePickup === 'true';
+  }
+  if (data.deliveryFree !== undefined) {
+    data.deliveryFree = data.deliveryFree === true || data.deliveryFree === 'true';
   }
 
   if (images && images.length > 0) {
