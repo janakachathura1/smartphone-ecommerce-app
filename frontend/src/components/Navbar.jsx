@@ -5,11 +5,12 @@ import {
   RiMenuLine, RiCloseLine, RiArrowDownSLine, RiLogoutBoxLine,
   RiDashboardLine, RiShoppingBagLine, RiFlashlightLine,
   RiHomeLine, RiStoreLine, RiInformationLine, RiPhoneLine,
-  RiArrowRightSLine, RiMapPinLine,
+  RiArrowRightSLine, RiMapPinLine, RiScales3Line,
 } from 'react-icons/ri';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
+import { useCompareStore } from '../store/useCompareStore';
 import { getInitials, formatPrice } from '../lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
@@ -19,6 +20,9 @@ export default function Navbar() {
   const { user, logout, isAuthenticated, isLoading } = useAuthStore();
   const { itemCount } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
+  const { compareItems } = useCompareStore();
+  const compareCount = compareItems.length;
+  const wishlistCount = wishlistItems?.length || 0;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -94,8 +98,6 @@ export default function Navbar() {
     navigate('/', { replace: true });
     logout();
   };
-
-  const wishlistCount = wishlistItems?.length || 0;
 
   return (
     <>
@@ -259,6 +261,20 @@ export default function Navbar() {
                 >
                   <RiSearchLine size={20} />
                 </button>
+
+                {/* Compare */}
+                <Link
+                  to="/compare"
+                  className="relative p-2 sm:p-2.5 text-secondary-500 hover:text-secondary-900 transition-colors rounded-lg hover:bg-secondary-50"
+                  title="Compare Phones"
+                >
+                  <RiScales3Line size={20} />
+                  {compareCount > 0 && (
+                    <span className="absolute top-1 right-1 w-[14px] h-[14px] bg-primary-600 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-pulse">
+                      {compareCount}
+                    </span>
+                  )}
+                </Link>
 
                 {/* Wishlist */}
                 <Link

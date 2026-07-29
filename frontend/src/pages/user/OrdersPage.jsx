@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { RiShoppingBagLine, RiEyeLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
+import { RiShoppingBagLine, RiEyeLine, RiPrinterLine } from 'react-icons/ri';
 import api from '../../lib/api';
 import { formatPrice } from '../../lib/utils';
 import { PageLoader, EmptyState } from '../../components/ui';
 import UserLayout from './UserLayout';
+import { printPDFInvoice } from '../../lib/pdfInvoice';
 
 const STATUS_COLORS = {
   pending: 'bg-amber-100 text-amber-700',
@@ -19,6 +20,11 @@ export default function OrdersPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['my-orders-all'],
     queryFn: () => api.get('/orders/my-orders?limit=50').then((r) => r.data.data),
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.get('/settings').then((r) => r.data.data),
   });
 
   const orders = data?.orders || [];
@@ -54,6 +60,14 @@ export default function OrdersPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => printPDFInvoice(order, settings)}
+                      className="px-3 py-1.5 bg-secondary-50 border border-secondary-200 hover:border-primary-300 hover:bg-primary-50 text-secondary-700 hover:text-primary-600 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      title="Download PDF Invoice"
+                    >
+                      <RiPrinterLine size={14} className="text-primary-600" />
+                      Invoice PDF
+                    </button>
                     <span className={`badge ${STATUS_COLORS[order.status] || ''} capitalize`}>{order.status}</span>
                     <span className="font-bold text-secondary-900">{formatPrice(order.totalAmount)}</span>
                   </div>

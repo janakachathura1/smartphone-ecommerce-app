@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import CompareFloatingBar from '../components/CompareFloatingBar';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
@@ -28,11 +29,12 @@ export default function MainLayout() {
   }, [isAuthenticated]);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col relative">
       <Navbar />
       <main className="flex-1">
         <Outlet />
       </main>
+      <CompareFloatingBar />
       <Footer />
     </div>
   );

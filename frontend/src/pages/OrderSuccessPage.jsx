@@ -1,9 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { RiCheckboxCircleLine, RiFileList3Line, RiShoppingBagLine } from 'react-icons/ri';
-import api from '../lib/api';
-import { formatPrice } from '../lib/utils';
-import { PageLoader } from '../components/ui';
+import { printPDFInvoice } from '../lib/pdfInvoice';
+import { RiCheckboxCircleLine, RiFileList3Line, RiShoppingBagLine, RiPrinterLine } from 'react-icons/ri';
 
 export default function OrderSuccessPage() {
   const { id } = useParams();
@@ -11,6 +9,11 @@ export default function OrderSuccessPage() {
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', id],
     queryFn: () => api.get(`/orders/${id}`).then((r) => r.data.data.order),
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.get('/settings').then((r) => r.data.data),
   });
 
   if (isLoading) return <PageLoader />;
@@ -45,15 +48,22 @@ export default function OrderSuccessPage() {
                 <span className="text-secondary-700">Total Paid</span>
                 <span className="text-secondary-900">{formatPrice(order.totalAmount)}</span>
               </div>
+              <button
+                onClick={() => printPDFInvoice(order, settings)}
+                className="w-full mt-3 py-2.5 px-4 bg-white border border-secondary-200 rounded-xl text-secondary-700 hover:text-primary-600 hover:border-primary-300 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+              >
+                <RiPrinterLine size={16} className="text-primary-600" />
+                Download / Print PDF Invoice
+              </button>
             </div>
           )}
 
           <div className="flex gap-3">
-            <Link to="/account/orders" className="flex-1 btn-outline py-3">
-              <RiFileList3Line size={18} /> Track Order
+            <Link to="/account/orders" className="flex-1 btn-outline py-3 text-xs">
+              <RiFileList3Line size={16} /> Track Order
             </Link>
-            <Link to="/shop" className="flex-1 btn-primary py-3">
-              <RiShoppingBagLine size={18} /> Shop More
+            <Link to="/shop" className="flex-1 btn-primary py-3 text-xs">
+              <RiShoppingBagLine size={16} /> Shop More
             </Link>
           </div>
         </div>

@@ -1,20 +1,20 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   RiHeartLine, RiHeartFill, RiShoppingCartLine, RiFlashlightLine,
   RiStarFill, RiStarLine, RiShieldCheckLine, RiTruckLine, RiArrowLeftLine,
-  RiCheckLine,
+  RiCheckLine, RiScales3Line,
 } from 'react-icons/ri';
 import api from '../lib/api';
 import { formatPrice, parseColors, parseStorageOptions } from '../lib/utils';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
+import { useCompareStore } from '../store/useCompareStore';
 import { PageLoader, ErrorState, SectionHeader } from '../components/ui';
 import ProductCard from '../components/ProductCard';
 import toast from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -22,6 +22,7 @@ export default function ProductDetailPage() {
   const { isAuthenticated } = useAuthStore();
   const { addToCart, isLoading: cartLoading } = useCartStore();
   const { toggle, isInWishlist } = useWishlistStore();
+  const { addToCompare, isInCompare, removeFromCompare } = useCompareStore();
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState('');
@@ -289,8 +290,21 @@ export default function ProductDetailPage() {
                 <RiFlashlightLine size={20} />
                 Buy Now
               </button>
-              <button onClick={handleWishlist} className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${inWishlist ? 'border-red-200 bg-red-50 text-red-500' : 'border-secondary-200 text-secondary-400 hover:border-red-200 hover:text-red-500'}`}>
+              <button onClick={handleWishlist} className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${inWishlist ? 'border-red-200 bg-red-50 text-red-500' : 'border-secondary-200 text-secondary-400 hover:border-red-200 hover:text-red-500'}`} title={inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}>
                 {inWishlist ? <RiHeartFill size={22} /> : <RiHeartLine size={22} />}
+              </button>
+              <button
+                onClick={() => {
+                  if (isInCompare(product.id)) {
+                    removeFromCompare(product.id);
+                  } else {
+                    addToCompare(product);
+                  }
+                }}
+                className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all ${isInCompare(product.id) ? 'border-primary-600 bg-primary-50 text-primary-600 font-bold' : 'border-secondary-200 text-secondary-400 hover:border-primary-300 hover:text-primary-600'}`}
+                title={isInCompare(product.id) ? 'Remove from Compare' : 'Add to Compare'}
+              >
+                <RiScales3Line size={22} />
               </button>
             </div>
 

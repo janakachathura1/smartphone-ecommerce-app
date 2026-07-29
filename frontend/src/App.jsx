@@ -9,6 +9,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import api from './lib/api';
 
+import ComparePage from './pages/ComparePage';
+
 // Pages
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
@@ -132,6 +134,7 @@ export default function App() {
             <Route path="about" element={<AboutPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="cart" element={<CartPage />} />
+            <Route path="compare" element={<ComparePage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />

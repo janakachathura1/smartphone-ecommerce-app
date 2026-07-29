@@ -1,20 +1,22 @@
-import { Link } from 'react-router-dom';
-import { RiHeartLine, RiHeartFill, RiShoppingCartLine, RiStarFill } from 'react-icons/ri';
+import { Link, useNavigate } from 'react-router-dom';
+import { RiHeartLine, RiHeartFill, RiShoppingCartLine, RiStarFill, RiScales3Line } from 'react-icons/ri';
 import { formatPrice } from '../lib/utils';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
-import { useNavigate } from 'react-router-dom';
+import { useCompareStore } from '../store/useCompareStore';
 import toast from 'react-hot-toast';
 
 export default function ProductCard({ product }) {
   const { isAuthenticated } = useAuthStore();
   const { addToCart, isLoading } = useCartStore();
   const { toggle, isInWishlist } = useWishlistStore();
+  const { addToCompare, isInCompare, removeFromCompare } = useCompareStore();
   const navigate = useNavigate();
 
   const primaryImage = product.images?.[0]?.url || `https://placehold.co/400x400/e2e8f0/64748b?text=${encodeURIComponent(product.name)}`;
   const inWishlist = isInWishlist(product.id);
+  const inCompare = isInCompare(product.id);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
@@ -36,6 +38,16 @@ export default function ProductCard({ product }) {
       return;
     }
     await toggle(product.id);
+  };
+
+  const handleCompare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inCompare) {
+      removeFromCompare(product.id);
+    } else {
+      addToCompare(product);
+    }
   };
 
   return (
@@ -63,18 +75,27 @@ export default function ProductCard({ product }) {
           )}
         </div>
 
-        {/* Wishlist button */}
-        <button
-          onClick={handleWishlist}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110"
-          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          {inWishlist ? (
-            <RiHeartFill size={16} className="text-red-500" />
-          ) : (
-            <RiHeartLine size={16} className="text-secondary-400 group-hover:text-secondary-700" />
-          )}
-        </button>
+        {/* Action Buttons Top Right */}
+        <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10">
+          <button
+            onClick={handleWishlist}
+            className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110"
+            aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            {inWishlist ? (
+              <RiHeartFill size={16} className="text-red-500" />
+            ) : (
+              <RiHeartLine size={16} className="text-secondary-400 group-hover:text-secondary-700" />
+            )}
+          </button>
+          <button
+            onClick={handleCompare}
+            className={`w-8 h-8 rounded-full shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110 ${inCompare ? 'bg-primary-600 text-white' : 'bg-white/90 text-secondary-400 hover:text-primary-600'}`}
+            title={inCompare ? 'Remove from compare' : 'Compare product'}
+          >
+            <RiScales3Line size={16} />
+          </button>
+        </div>
 
         {/* Add to cart overlay */}
         <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">

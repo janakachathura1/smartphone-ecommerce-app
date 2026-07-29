@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { formatPrice } from '../../lib/utils';
+import { printPDFInvoice } from '../../lib/pdfInvoice';
 import toast from 'react-hot-toast';
 import { PageLoader, EmptyState } from '../../components/ui';
-import { RiShoppingCartLine } from 'react-icons/ri';
+import { RiShoppingCartLine, RiPrinterLine } from 'react-icons/ri';
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 const PAYMENT_STATUS_OPTIONS = ['unpaid', 'paid', 'refunded'];
@@ -21,6 +22,11 @@ export default function AdminOrders() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.get('/settings').then((r) => r.data.data),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-orders', statusFilter, page],
@@ -107,6 +113,16 @@ export default function AdminOrders() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-xs text-secondary-500 capitalize">{order.paymentMethod}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => printPDFInvoice(order, settings)}
+                        className="p-2 text-secondary-500 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-colors inline-flex items-center gap-1 text-xs font-bold border border-secondary-200"
+                        title="Print / Download PDF Invoice"
+                      >
+                        <RiPrinterLine size={15} className="text-primary-600" />
+                        <span>PDF</span>
+                      </button>
                     </td>
                   </tr>
                 ))}
