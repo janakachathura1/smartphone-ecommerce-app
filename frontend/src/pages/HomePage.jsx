@@ -497,44 +497,73 @@ export default function HomePage() {
       </section>
 
       {/* Shop by Brand - Premium Glass Gallery */}
-      <section className="py-28 bg-gradient-to-b from-white to-secondary-50 overflow-hidden relative">
-        <div className="container-custom relative z-10 mb-20 text-center">
+      {/* Elite Brands Marquee Section */}
+      <section className="py-24 bg-gradient-to-b from-white via-secondary-50/50 to-white overflow-hidden relative border-t border-b border-secondary-100">
+        {/* Ambient background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary-500/5 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="container-custom relative z-10 mb-14 text-center">
           <ScrollReveal animation="slide-up">
-            <div className="flex flex-col items-center gap-4">
-              <span className="px-5 py-1.5 bg-primary-100 text-primary-700 text-[10px] font-black uppercase tracking-[0.4em] rounded-full">
-                Our Partners
+            <div className="flex flex-col items-center gap-3">
+              <span className="px-5 py-1.5 bg-primary-50 text-primary-600 border border-primary-200/60 text-[11px] font-black uppercase tracking-[0.3em] rounded-full shadow-sm flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary-600 animate-ping" />
+                Official Partners & Retailers
               </span>
-              <h2 className="text-4xl md:text-6xl font-black text-secondary-950 tracking-tight uppercase leading-none">
-                Elite Brands <span className="text-primary-600">.</span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-secondary-950 tracking-tight uppercase leading-none">
+                Elite Smartphone Brands <span className="text-primary-600 font-serif">.</span>
               </h2>
+              <p className="text-secondary-500 text-xs sm:text-sm max-w-md font-medium mt-1">
+                Explore authentic flagship smartphones directly from world-renowned technology innovators
+              </p>
             </div>
           </ScrollReveal>
         </div>
 
-        <div className="relative flex overflow-hidden group py-10">
-          <div className="flex animate-marquee gap-12 whitespace-nowrap group-hover:[animation-play-state:paused] py-4 items-center">
-            {[...(brandsList || []), ...(brandsList || []), ...(brandsList || [])].map((brand, i) => (
+        {/* Marquee Wrapper */}
+        <div className="relative flex overflow-hidden group py-6">
+          <div className="flex animate-marquee gap-8 whitespace-nowrap group-hover:[animation-play-state:paused] py-4 items-center">
+            {[...(brandsList || []), ...(brandsList || []), ...(brandsList || []), ...(brandsList || [])].map((brand, i) => (
               <Link
                 key={`${brand.slug}-${i}`}
                 to={`/shop?brand=${brand.slug}`}
-                className="group relative flex items-center justify-center"
+                className="group/brand relative flex-shrink-0"
               >
-                {/* Glassmorphism Capsule with vibrant hover fill */}
-                <div className="px-14 py-7 rounded-2xl bg-white border border-secondary-100 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:bg-primary-600 hover:border-primary-600 hover:shadow-glow-primary hover:scale-110 transition-all duration-500 relative overflow-hidden group/pill">
-                  {/* Background light pulse on hover */}
-                  <div className="absolute inset-x-0 -bottom-full h-full bg-white/10 group-hover/pill:bottom-0 transition-all duration-700 pointer-events-none" />
+                {/* Modern Glassmorphic Pill */}
+                <div className="px-8 py-5 sm:px-10 sm:py-6 rounded-3xl bg-white/90 backdrop-blur-xl border border-secondary-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.25)] hover:border-primary-500/60 hover:bg-white hover:-translate-y-2 hover:scale-105 transition-all duration-500 relative overflow-hidden flex items-center gap-4">
+                  {/* Neon Accent Line on Hover */}
+                  <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary-500 via-indigo-500 to-primary-500 opacity-0 group-hover/brand:opacity-100 transition-opacity duration-300" />
 
-                  <span className="text-3xl md:text-4xl font-black text-secondary-900 uppercase tracking-tighter group-hover/pill:text-white transition-all duration-500">
-                    {brand.name}
-                  </span>
+                  {/* Shimmer Light Beam */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-500/10 to-transparent -translate-x-full group-hover/brand:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+
+                  {/* Brand Avatar / Icon */}
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-secondary-50 border border-secondary-100 flex items-center justify-center flex-shrink-0 group-hover/brand:bg-primary-600 group-hover/brand:border-primary-600 transition-colors duration-300 shadow-sm">
+                    {brand.logoUrl ? (
+                      <img src={brand.logoUrl} alt={brand.name} className="w-6 h-6 object-contain group-hover/brand:brightness-200 transition-all" />
+                    ) : (
+                      <span className="font-black text-secondary-700 text-lg group-hover/brand:text-white transition-colors uppercase">
+                        {brand.name?.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Brand Name & Action */}
+                  <div className="flex flex-col text-left">
+                    <span className="text-xl sm:text-2xl font-black text-secondary-900 uppercase tracking-tight group-hover/brand:text-primary-600 transition-colors duration-300">
+                      {brand.name}
+                    </span>
+                    <span className="text-[10px] font-bold text-secondary-400 group-hover/brand:text-primary-500 transition-colors flex items-center gap-1">
+                      Browse Collection →
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
           </div>
 
-          {/* Premium Fade Overlays */}
-          <div className="absolute inset-y-0 left-0 w-16 sm:w-40 lg:w-80 bg-gradient-to-r from-white via-white/50 to-transparent z-10" />
-          <div className="absolute inset-y-0 right-0 w-16 sm:w-40 lg:w-80 bg-gradient-to-l from-white via-white/50 to-transparent z-10" />
+          {/* Side Gradient Fade Overlays */}
+          <div className="absolute inset-y-0 left-0 w-20 sm:w-44 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-20 sm:w-44 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
         </div>
       </section>
 
