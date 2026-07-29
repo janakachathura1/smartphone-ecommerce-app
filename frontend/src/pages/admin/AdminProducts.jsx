@@ -442,6 +442,7 @@ export default function AdminProducts() {
                     });
                   })()}
                   <p className="text-[10px] text-secondary-500 mt-3 italic">If price is left empty, the standard base price will be used instead.</p>
+                </div>
                 <div className="col-span-2 bg-primary-50/50 p-4 rounded-xl border border-primary-200">
                   <div className="flex justify-between items-center mb-3">
                     <div>
