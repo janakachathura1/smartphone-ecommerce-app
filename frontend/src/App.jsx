@@ -140,7 +140,7 @@ function SiteSettingsSync() {
 }
 
 export default function App() {
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '105828472910-dummy-google-client-id.apps.googleusercontent.com';
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '450282233425-4t3sf40dr7tde2klu6d9s8tnh47ghqfn.apps.googleusercontent.com';
 
   return (
     <GoogleOAuthProvider clientId={googleClientId} locale="en">
