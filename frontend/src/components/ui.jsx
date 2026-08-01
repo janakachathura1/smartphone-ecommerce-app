@@ -19,29 +19,10 @@ export function ProductCardSkeleton() {
 }
 
 export function PageLoader() {
-  const { data: settings } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => api.get('/settings').then((r) => r.data.data),
-    staleTime: Infinity
-  });
-  const shopName = settings?.shopName || 'TechPulse';
-
   return (
-    <div className="fixed inset-0 z-[999] bg-primary-50 flex flex-col items-center justify-center animate-fade-in">
-      {/* Top Loading Bar */}
-      <div className="fixed top-0 left-0 right-0 h-0.5 z-[1000] overflow-hidden">
-        <div className="h-full bg-primary-600 w-1/3 rounded-full animate-marquee-load shadow-[0_0_10px_rgba(2,132,199,0.5)]" />
-      </div>
-
-      <div className="text-center space-y-4">
-        <h2 className="text-4xl md:text-6xl font-black text-secondary-950 tracking-tighter uppercase italic shimmer-text opacity-90">
-          {shopName}
-        </h2>
-        <div className="flex items-center justify-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse" />
-          <p className="text-[10px] font-black text-primary-600 uppercase tracking-[0.4em] opacity-60">Professional Syncing</p>
-        </div>
-      </div>
+    <div className="w-full py-16 flex flex-col items-center justify-center gap-3 animate-fade-in">
+      <div className="w-9 h-9 border-[3.5px] border-secondary-200 border-t-primary-600 rounded-full animate-spin" />
+      <span className="text-xs font-bold text-secondary-500 tracking-wider">Loading...</span>
     </div>
   );
 }

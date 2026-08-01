@@ -159,13 +159,18 @@ function CartItem({ item, onUpdate, onRemove }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: C.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+        {(item.color || item.storage) && (
+          <div style={{ fontSize: 9, color: C.textSub, marginTop: 1, fontWeight: 600 }}>
+            {[item.color, item.storage].filter(Boolean).join(' / ')}
+          </div>
+        )}
         <div style={{ fontSize: 11, fontWeight: 700, color: C.green, marginTop: 2 }}>{formatPrice(item.price)} × {item.quantity}</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <button onClick={() => onUpdate(item.productId, -1)} style={{ width: 24, height: 24, background: C.surfaceAlt, color: C.textSub, borderRadius: 6, border: `1px solid ${C.border}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15 }}>−</button>
+        <button onClick={() => onUpdate(item.cartKey, -1)} style={{ width: 24, height: 24, background: C.surfaceAlt, color: C.textSub, borderRadius: 6, border: `1px solid ${C.border}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15 }}>−</button>
         <span style={{ fontSize: 13, fontWeight: 800, color: C.text, minWidth: 22, textAlign: 'center' }}>{item.quantity}</span>
-        <button onClick={() => onUpdate(item.productId, +1)} style={{ width: 24, height: 24, background: C.surfaceAlt, color: C.textSub, borderRadius: 6, border: `1px solid ${C.border}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15 }}>+</button>
-        <button onClick={() => onRemove(item.productId)} style={{ width: 24, height: 24, background: C.redBg, color: C.red, borderRadius: 6, border: `1px solid #fecaca`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 4 }}>
+        <button onClick={() => onUpdate(item.cartKey, +1)} style={{ width: 24, height: 24, background: C.surfaceAlt, color: C.textSub, borderRadius: 6, border: `1px solid ${C.border}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15 }}>+</button>
+        <button onClick={() => onRemove(item.cartKey)} style={{ width: 24, height: 24, background: C.redBg, color: C.red, borderRadius: 6, border: `1px solid #fecaca`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 4 }}>
           <RiDeleteBin6Line size={12} />
         </button>
       </div>
@@ -238,8 +243,9 @@ function PaymentModal({ total, cashGiven, setCashGiven, onCancel, onConfirm, isS
         </div>
 
         <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={onCancel} style={{ flex: 1, padding: '13px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, fontWeight: 700, color: C.textSub, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+          <button type="button" onClick={onCancel} style={{ flex: 1, padding: '13px', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, fontWeight: 700, color: C.textSub, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isSubmitting || !cashGiven}
             style={{ flex: 2, padding: '13px', background: (!cashGiven || isSubmitting) ? '#86efac' : '#16a34a', border: 'none', borderRadius: 12, fontWeight: 700, color: '#fff', fontSize: 14, cursor: (!cashGiven || isSubmitting) ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, opacity: !cashGiven ? 0.5 : 1 }}
@@ -251,25 +257,125 @@ function PaymentModal({ total, cashGiven, setCashGiven, onCancel, onConfirm, isS
     </div>
   );
 }
-
-// ─── Receipt Modal ─────────────────────────────────────────────────────────────
 function ReceiptModal({ order, shopName, shopPhone, onClose }) {
   const printRef = useRef(null);
   const handlePrint = () => {
-    const content = printRef.current.innerHTML;
-    const w = window.open('', '_blank', 'width=400,height=700');
+    const itemsHtml = order.items.map(item => `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span style="flex: 1; padding-right: 5px;">${item.quantity}x ${item.name}${item.color || item.storage ? ` (${[item.color, item.storage].filter(Boolean).join(', ')})` : ''}</span>
+        <span style="font-weight: bold;">${formatPrice(item.price * item.quantity)}</span>
+      </div>
+    `).join('');
+
+    const customerLine = order.customerName ? `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Customer:</span>
+        <span style="font-weight: bold;">${order.customerName}</span>
+      </div>
+      ${order.customerPhone ? `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Phone:</span>
+        <span>${order.customerPhone}</span>
+      </div>
+      ` : ''}
+    ` : `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Customer:</span>
+        <span>Walk-in Customer</span>
+      </div>
+    `;
+
+    const w = window.open('', '_blank', 'width=380,height=600');
     w.document.write(`
-      <html><head><title>Receipt</title><style>
-        body { font-family: 'Courier New', monospace; font-size: 13px; color: #000; padding: 20px; max-width: 320px; margin: 0 auto; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-        .divider { border-top: 1px dashed #999; margin: 12px 0; }
-        .total-row { font-weight: bold; font-size: 15px; }
-        @media print { body { padding: 0; } }
-      </style></head><body>${content}</body></html>
+      <html>
+        <head>
+          <title>POS Receipt</title>
+          <style>
+            @page { margin: 0; }
+            body { 
+              font-family: 'Courier New', Courier, monospace; 
+              font-size: 12px; 
+              line-height: 1.4; 
+              color: #000; 
+              padding: 10px; 
+              max-width: 290px; 
+              margin: 0 auto;
+              background-color: #fff;
+            }
+            .text-center { text-align: center; }
+            .bold { font-weight: bold; }
+            .divider { border-top: 1px dashed #000; margin: 10px 0; }
+            .flex-between { display: flex; justify-content: space-between; }
+            .header-title { font-size: 15px; font-weight: bold; margin-bottom: 3px; }
+            .footer { margin-top: 15px; font-size: 11px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="text-center">
+            <div class="header-title">${shopName || 'UltraMobile'}</div>
+            <div style="font-size: 10px;">Mobile Shop & Repair Centre</div>
+            ${shopPhone ? `<div style="font-size: 10px; margin-top: 2px;">Phone: ${shopPhone}</div>` : ''}
+          </div>
+          <div class="divider"></div>
+          
+          <div class="flex-between" style="font-size: 11px;">
+            <span>Receipt #: ${order.receiptNo}</span>
+            <span>${order.date}</span>
+          </div>
+          <div style="font-size: 11px; margin-top: 4px;">
+            ${customerLine}
+          </div>
+          <div class="flex-between" style="font-size: 11px; margin-top: 4px;">
+            <span>Payment: ${order.paymentMethod.toUpperCase()}</span>
+          </div>
+          
+          <div class="divider"></div>
+          ${itemsHtml}
+          <div class="divider"></div>
+          
+          <div class="flex-between">
+            <span>Subtotal:</span>
+            <span>${formatPrice(order.subtotal)}</span>
+          </div>
+          ${order.discountAmt > 0 ? `
+          <div class="flex-between">
+            <span>Discount:</span>
+            <span>-${formatPrice(order.discountAmt)}</span>
+          </div>
+          ` : ''}
+          <div class="flex-between">
+            <span>VAT (5%):</span>
+            <span>${formatPrice(order.vat)}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="flex-between bold" style="font-size: 13px;">
+            <span>TOTAL:</span>
+            <span>${formatPrice(order.total)}</span>
+          </div>
+          
+          ${order.cashGiven > 0 ? `
+          <div class="flex-between" style="margin-top: 5px;">
+            <span>Cash Tendered:</span>
+            <span>${formatPrice(order.cashGiven)}</span>
+          </div>
+          <div class="flex-between bold" style="margin-top: 2px;">
+            <span>Change:</span>
+            <span>${formatPrice(Math.max(order.cashGiven - order.total, 0))}</span>
+          </div>
+          ` : ''}
+          
+          <div class="divider"></div>
+          <div class="footer">
+            <div class="bold">Thank you for shopping with us!</div>
+            <div style="margin-top: 3px;">Warranty: 30 days on all products</div>
+            <div style="margin-top: 8px;">— ${shopName} —</div>
+          </div>
+        </body>
+      </html>
     `);
     w.document.close();
     w.focus();
-    setTimeout(() => { w.print(); w.close(); }, 500);
+    setTimeout(() => { w.print(); w.close(); }, 400);
   };
 
   return (
@@ -304,13 +410,21 @@ function ReceiptModal({ order, shopName, shopPhone, onClose }) {
               <span>Receipt #: {order.receiptNo}</span><span>{order.date}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: C.textMuted, marginBottom: 4 }}>
-              <span>Customer: Walk-in</span><span style={{ textTransform: 'capitalize' }}>Pay: {order.paymentMethod}</span>
+              <span>Customer: {order.customerName || 'Walk-in'}</span>
+              <span style={{ textTransform: 'capitalize' }}>Pay: {order.paymentMethod}</span>
             </div>
             <div style={{ borderTop: `1px dashed ${C.border}`, margin: '14px 0' }} />
 
             {order.items.map((item, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13, color: C.text }}>
-                <span style={{ flex: 1, paddingRight: 8 }}>{item.quantity}× {item.name}</span>
+                <span style={{ flex: 1, paddingRight: 8 }}>
+                  {item.quantity}× {item.name}
+                  {(item.color || item.storage) && (
+                    <span style={{ fontSize: 10, color: C.textMuted, display: 'block', marginTop: 2 }}>
+                      {[item.color, item.storage].filter(Boolean).join(' / ')}
+                    </span>
+                  )}
+                </span>
                 <span style={{ fontWeight: 600, flexShrink: 0 }}>{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
@@ -381,6 +495,16 @@ function FilterChip({ label, active, onClick, color = C.accent }) {
   );
 }
 
+// ─── Debounce Helper ─────────────────────────────────────────────────────────
+function useDebounce(value, delay) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debounced;
+}
+
 // ─── Main POS ─────────────────────────────────────────────────────────────────
 export default function AdminCheckout() {
   const [search, setSearch]               = useState('');
@@ -397,19 +521,73 @@ export default function AdminCheckout() {
   const [viewMode, setViewMode]           = useState('grid');
   const searchRef = useRef(null);
 
-  // Persist cart
-  useEffect(() => { localStorage.setItem('pos-cart', JSON.stringify(cart)); }, [cart]);
+  // New POS States
+  const [variantSelectProduct, setVariantSelectProduct] = useState(null);
+  const [selectedCustomer, setSelectedCustomer]         = useState(null);
+  const [customerSearch, setCustomerSearch]             = useState('');
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [showHeldCartsModal, setShowHeldCartsModal]     = useState(false);
+  const [heldCarts, setHeldCarts]                       = useState(() => { try { return JSON.parse(localStorage.getItem('pos-held-carts')) || []; } catch { return []; } });
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    searchRef.current?.focus();
-    const handleKey = e => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key === 'Escape') { setShowPaymentModal(false); setShowReceiptModal(false); }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+  // Debounced Customer Search
+  const debouncedCustomerSearch = useDebounce(customerSearch, 300);
+
+  // ── Cart ops ───────────────────────────────────────────────────────────────
+  const addToCart = useCallback((product, selectedVariant = null) => {
+    // If product has variants, but no specific variant is selected yet, prompt selector
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
+      setVariantSelectProduct(product);
+      return;
+    }
+
+    setCart(prev => {
+      // Determine unique cart key: variant id or product id
+      const cartKey = selectedVariant ? selectedVariant.id : product.id;
+      const existing = prev.find(i => i.cartKey === cartKey);
+      
+      const maxStock = selectedVariant ? selectedVariant.stock : product.stock;
+      const price = selectedVariant ? (selectedVariant.price || product.finalPrice) : product.finalPrice;
+      const sku = selectedVariant?.sku || product.sku || product.id?.slice(0, 10);
+      const color = selectedVariant?.color || null;
+      const storage = selectedVariant?.storage || null;
+
+      if (existing) {
+        if (existing.quantity >= maxStock) { 
+          toast.error(`Max stock (${maxStock}) reached for this item`, { id: 'stock' }); 
+          return prev; 
+        }
+        return prev.map(i => i.cartKey === cartKey ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      
+      if (maxStock <= 0) { 
+        toast.error('Out of stock', { id: 'out' }); 
+        return prev; 
+      }
+      
+      return [...prev, {
+        cartKey,
+        productId: product.id,
+        variantId: selectedVariant?.id || null,
+        name: product.name,
+        price,
+        quantity: 1,
+        stock: maxStock,
+        color,
+        storage,
+        image: product.images?.[0]?.url,
+        sku
+      }];
+    });
   }, []);
+
+  const updateQuantity = (cartKey, delta) => setCart(prev => prev.map(i => {
+    if (i.cartKey !== cartKey) return i;
+    const q = i.quantity + delta;
+    return (q < 1 || q > i.stock) ? i : { ...i, quantity: q };
+  }));
+
+  const removeFromCart = cartKey => setCart(prev => prev.filter(i => i.cartKey !== cartKey));
+  const clearCart = () => { setCart([]); setDiscountInput(''); setSelectedCustomer(null); };
 
   // ── Data fetching ──────────────────────────────────────────────────────────
   const { data: settings } = useQuery({
@@ -442,6 +620,89 @@ export default function AdminCheckout() {
     refetchInterval: 15_000,
   });
 
+  // Customers CRM – fetch customers matching search input
+  const { data: customersData } = useQuery({
+    queryKey: ['pos-customers', debouncedCustomerSearch],
+    queryFn: () => api.get('/users', { params: { search: debouncedCustomerSearch, limit: 15 } }).then(r => r.data.data.users || []),
+    enabled: debouncedCustomerSearch.trim().length >= 2,
+    placeholderData: [],
+  });
+
+  // Sync held carts to localStorage
+  useEffect(() => { localStorage.setItem('pos-held-carts', JSON.stringify(heldCarts)); }, [heldCarts]);
+
+  // Persist cart
+  useEffect(() => { localStorage.setItem('pos-cart', JSON.stringify(cart)); }, [cart]);
+
+  // Refs for hardware barcode scanner tracking
+  const barcodeBuffer = useRef('');
+  const lastKeyTime = useRef(0);
+
+  // Keyboard shortcuts & Barcode Scanner Integration
+  useEffect(() => {
+    searchRef.current?.focus();
+    
+    const handleKey = e => {
+      // 1. Keyboard Shortcuts
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') { 
+        e.preventDefault(); 
+        searchRef.current?.focus(); 
+        return;
+      }
+      if (e.key === 'Escape') { 
+        setShowPaymentModal(false); 
+        setShowReceiptModal(false); 
+        setVariantSelectProduct(null);
+        setShowAddCustomerModal(false);
+        setShowHeldCartsModal(false);
+        return;
+      }
+
+      // 2. Global Barcode / IMEI Scanner Listener
+      const now = Date.now();
+      
+      // If it has been more than 40ms since the last key, reset the scanner buffer
+      if (now - lastKeyTime.current > 40) {
+        barcodeBuffer.current = '';
+      }
+      lastKeyTime.current = now;
+
+      if (e.key.length === 1) {
+        barcodeBuffer.current += e.key;
+      } else if (e.key === 'Enter') {
+        const code = barcodeBuffer.current.trim();
+        barcodeBuffer.current = '';
+        
+        // Barcode scans are typed very fast and typically have 4+ characters
+        if (code.length >= 3) {
+          const matched = productsData?.find(p => {
+            const prodMatch = p.sku?.toLowerCase() === code.toLowerCase() || p.barcode?.toLowerCase() === code.toLowerCase();
+            const varMatch = p.variants?.some(v => v.sku?.toLowerCase() === code.toLowerCase());
+            return prodMatch || varMatch;
+          });
+
+          if (matched) {
+            e.preventDefault();
+            const specificVar = matched.variants?.find(v => v.sku?.toLowerCase() === code.toLowerCase());
+            if (specificVar) {
+              addToCart(matched, specificVar);
+            } else if (matched.variants && matched.variants.length > 0) {
+              setVariantSelectProduct(matched);
+            } else {
+              addToCart(matched);
+            }
+            toast.success(`Scanned: ${matched.name}`);
+          }
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [productsData, addToCart]);
+
+
+
   const shopName  = settings?.shopName || 'PhoneHub';
   const shopPhone = settings?.phone    || '';
 
@@ -463,27 +724,77 @@ export default function AdminCheckout() {
     toast.success('Refreshed!', { duration: 1200, id: 'refresh' });
   };
 
-  // ── Cart ops ───────────────────────────────────────────────────────────────
-  const addToCart = useCallback((product) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.productId === product.id);
-      if (existing) {
-        if (existing.quantity >= product.stock) { toast.error('Max stock reached', { id: 'stock' }); return prev; }
-        return prev.map(i => i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+
+
+  // ── Hold / Resume Carts ─────────────────────────────────────────────────────
+  const handleHoldCart = () => {
+    if (cart.length === 0) { toast.error('Cart is empty'); return; }
+    const tag = prompt('Enter a label/name for this held cart:') || `Held Cart #${heldCarts.length + 1}`;
+    const newHold = {
+      id: Date.now().toString(),
+      tag,
+      cart,
+      discountType,
+      discountInput,
+      paymentMethod,
+      selectedCustomer,
+      createdAt: new Date().toLocaleString(),
+    };
+    setHeldCarts(prev => [newHold, ...prev]);
+    setCart([]);
+    setDiscountInput('');
+    setSelectedCustomer(null);
+    toast.success('Cart put on hold!');
+  };
+
+  const handleResumeCart = (heldId) => {
+    const target = heldCarts.find(c => c.id === heldId);
+    if (!target) return;
+    setCart(target.cart);
+    setDiscountType(target.discountType);
+    setDiscountInput(target.discountInput);
+    setPaymentMethod(target.paymentMethod);
+    setSelectedCustomer(target.selectedCustomer);
+    setHeldCarts(prev => prev.filter(c => c.id !== heldId));
+    setShowHeldCartsModal(false);
+    toast.success(`Resumed: ${target.tag}`);
+  };
+
+  const handleDeleteHeldCart = (e, heldId) => {
+    e.stopPropagation();
+    setHeldCarts(prev => prev.filter(c => c.id !== heldId));
+    toast.success('Held cart deleted');
+  };
+
+  // ── Manual Barcode Enter Handler ───────────────────────────────────────────
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const code = search.trim();
+      if (!code) return;
+      
+      const matched = productsData?.find(p => {
+        const prodMatch = p.sku?.toLowerCase() === code.toLowerCase() || p.barcode?.toLowerCase() === code.toLowerCase();
+        const varMatch = p.variants?.some(v => v.sku?.toLowerCase() === code.toLowerCase());
+        return prodMatch || varMatch;
+      });
+
+      if (matched) {
+        const specificVar = matched.variants?.find(v => v.sku?.toLowerCase() === code.toLowerCase());
+        if (specificVar) {
+          addToCart(matched, specificVar);
+        } else if (matched.variants && matched.variants.length > 0) {
+          setVariantSelectProduct(matched);
+        } else {
+          addToCart(matched);
+        }
+        setSearch('');
+        toast.success(`Added: ${matched.name}`);
+      } else {
+        toast.error(`No product found with code: ${code}`);
       }
-      if (product.stock <= 0) { toast.error('Out of stock', { id: 'out' }); return prev; }
-      return [...prev, { productId: product.id, name: product.name, price: product.finalPrice, quantity: 1, stock: product.stock, image: product.images?.[0]?.url, sku: product.sku || product.id?.slice(0, 10) }];
-    });
-  }, []);
-
-  const updateQuantity = (id, delta) => setCart(prev => prev.map(i => {
-    if (i.productId !== id) return i;
-    const q = i.quantity + delta;
-    return (q < 1 || q > i.stock) ? i : { ...i, quantity: q };
-  }));
-
-  const removeFromCart = id => setCart(prev => prev.filter(i => i.productId !== id));
-  const clearCart = () => { setCart([]); setDiscountInput(''); };
+    }
+  };
 
   // ── Calculations ───────────────────────────────────────────────────────────
   const subtotal        = cart.reduce((a, i) => a + i.price * i.quantity, 0);
@@ -503,14 +814,17 @@ export default function AdminCheckout() {
     setIsSubmitting(true);
     try {
       const res = await api.post('/orders/admin/create', {
-        items: cart.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price })),
+        items: cart.map(i => ({ productId: i.productId, quantity: i.quantity, price: i.price, color: i.color, storage: i.storage })),
         paymentMethod, paymentStatus: 'paid', discount: discountAmt,
+        customerInfo: selectedCustomer ? { firstName: selectedCustomer.firstName, lastName: selectedCustomer.lastName, email: selectedCustomer.email, phone: selectedCustomer.phone } : null,
       });
       setLastOrder({
         items: cart, subtotal, discountAmt, vat, total, paymentMethod,
         cashGiven: parseFloat(cashGiven) || 0,
-        receiptNo: res.data?.data?.orderId || `R${Date.now().toString().slice(-8)}`,
+        receiptNo: res.data?.data?.order?.orderNumber || res.data?.data?.orderId || `R${Date.now().toString().slice(-8)}`,
         date: new Date().toLocaleString(),
+        customerName: selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : null,
+        customerPhone: selectedCustomer?.phone || null,
       });
       toast.success('✅ Sale completed!');
       clearCart(); setCashGiven('');
@@ -550,6 +864,7 @@ export default function AdminCheckout() {
               ref={searchRef}
               value={search}
               onChange={e => setSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               placeholder="Search product or scan barcode... (Ctrl+F)"
               style={{ width: '100%', boxSizing: 'border-box', padding: '9px 38px', fontSize: 13, borderRadius: 10, border: `1.5px solid ${C.border}`, outline: 'none', background: C.surfaceAlt, color: C.text, transition: 'border 0.15s' }}
               onFocus={e => e.target.style.borderColor = C.borderFocus}
@@ -666,18 +981,110 @@ export default function AdminCheckout() {
                   <span style={{ background: C.accent, color: '#fff', fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 999, minWidth: 20, textAlign: 'center' }}>{itemCount}</span>
                 )}
               </div>
-              <button onClick={clearCart} disabled={cart.length === 0}
-                style={{ fontSize: 11, fontWeight: 700, color: C.red, background: 'transparent', border: 'none', cursor: 'pointer', opacity: cart.length === 0 ? 0.3 : 1 }}>
-                Clear All
-              </button>
+              
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                {heldCarts.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowHeldCartsModal(true)}
+                    style={{ fontSize: 11, fontWeight: 700, color: C.accent, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                  >
+                    Drafts ({heldCarts.length})
+                  </button>
+                )}
+                {cart.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleHoldCart}
+                    style={{ fontSize: 11, fontWeight: 700, color: C.orange, background: 'transparent', border: 'none', cursor: 'pointer' }}
+                  >
+                    Hold
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={clearCart}
+                  disabled={cart.length === 0}
+                  style={{ fontSize: 11, fontWeight: 700, color: C.red, background: 'transparent', border: 'none', cursor: 'pointer', opacity: cart.length === 0 ? 0.3 : 1 }}
+                >
+                  Clear All
+                </button>
+              </div>
             </div>
 
-            {/* Customer */}
-            <div style={{ padding: '9px 18px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <RiUser3Line size={14} color={C.accent} />
-              <select style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: C.textSub, fontWeight: 500 }}>
-                <option>Walk-in Customer</option>
-              </select>
+            {/* Customer CRM section */}
+            <div style={{ borderBottom: `1px solid ${C.border}`, flexShrink: 0, padding: '10px 18px', background: C.surfaceAlt, position: 'relative' }}>
+              {selectedCustomer ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <RiUser3Line size={13} color={C.accent} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: C.text, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {selectedCustomer.firstName} {selectedCustomer.lastName}
+                      </div>
+                      <div style={{ fontSize: 9, color: C.textMuted, marginTop: 1 }}>{selectedCustomer.phone || selectedCustomer.email}</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedCustomer(null); setCustomerSearch(''); }}
+                    style={{ background: 'transparent', border: 'none', color: C.red, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+                  >
+                    Deselect
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <RiUser3Line size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: C.textMuted }} />
+                      <input
+                        type="text"
+                        value={customerSearch}
+                        onChange={e => setCustomerSearch(e.target.value)}
+                        placeholder="Search customer (Name/Phone)..."
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '6px 12px 6px 28px', fontSize: 12, borderRadius: 8, border: `1.5px solid ${C.border}`, outline: 'none', background: C.surface, color: C.text }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCustomerModal(true)}
+                      style={{ padding: '6px 10px', background: C.accentBg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.accent, fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      + Add New
+                    </button>
+                  </div>
+                  
+                  {/* Customer matches suggestions dropdown overlay */}
+                  {customerSearch.trim().length >= 2 && customersData && customersData.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 18, right: 18, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(15,23,42,0.12)', zIndex: 100, maxHeight: 150, overflowY: 'auto', marginTop: 4 }}>
+                      {customersData.map(cust => (
+                        <button
+                          key={cust.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCustomer(cust);
+                            setCustomerSearch('');
+                          }}
+                          style={{ width: '100%', padding: '8px 12px', border: 'none', borderBottom: `1px solid ${C.surfaceAlt}`, background: 'transparent', textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 2 }}
+                          onMouseEnter={e => e.currentTarget.style.background = C.surfaceAlt}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{cust.firstName} {cust.lastName}</span>
+                          <span style={{ fontSize: 9, color: C.textMuted }}>{cust.email} | {cust.phone || 'No phone'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {customerSearch.trim().length >= 2 && customersData && customersData.length === 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 18, right: 18, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(15,23,42,0.12)', zIndex: 100, padding: '12px 16px', fontSize: 11, color: C.textMuted, marginTop: 4, textAlign: 'center' }}>
+                      No customers found. Click "+ Add New" to register.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Cart items */}
@@ -772,6 +1179,35 @@ export default function AdminCheckout() {
       {showReceiptModal && lastOrder && (
         <ReceiptModal order={lastOrder} shopName={shopName} shopPhone={shopPhone} onClose={() => setShowReceiptModal(false)} />
       )}
+      {variantSelectProduct && (
+        <VariantSelectorModal
+          product={variantSelectProduct}
+          onSelect={(variant) => {
+            addToCart(variantSelectProduct, variant);
+            setVariantSelectProduct(null);
+            toast.success(`Added: ${variantSelectProduct.name} (${variant.color || ''} ${variant.storage || ''})`);
+          }}
+          onCancel={() => setVariantSelectProduct(null)}
+        />
+      )}
+      {showAddCustomerModal && (
+        <AddCustomerModal
+          onCancel={() => setShowAddCustomerModal(false)}
+          onSave={(cust) => {
+            setSelectedCustomer(cust);
+            setShowAddCustomerModal(false);
+            toast.success(`Customer linked: ${cust.firstName}`);
+          }}
+        />
+      )}
+      {showHeldCartsModal && (
+        <HeldCartsModal
+          heldCarts={heldCarts}
+          onResume={handleResumeCart}
+          onDelete={handleDeleteHeldCart}
+          onCancel={() => setShowHeldCartsModal(false)}
+        />
+      )}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -782,6 +1218,155 @@ export default function AdminCheckout() {
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
       `}</style>
+    </div>
+  );
+}
+
+// ─── Variant Selector Modal ──────────────────────────────────────────────────
+function VariantSelectorModal({ product, onSelect, onCancel }) {
+  const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, width: 420, padding: 28, boxShadow: '0 24px 60px rgba(15,23,42,0.18)' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: C.text }}>Select Variant for {product.name}</h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 220, overflowY: 'auto', marginBottom: 20 }}>
+          {product.variants?.map((v) => {
+            const active = selectedVariant?.id === v.id;
+            const price = v.price || product.finalPrice;
+            const outOfStock = v.stock <= 0;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                disabled={outOfStock}
+                onClick={() => setSelectedVariant(v)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px',
+                  background: active ? C.accentBg : C.surfaceAlt,
+                  border: `1.5px solid ${active ? C.accent : C.border}`,
+                  borderRadius: 10, cursor: outOfStock ? 'not-allowed' : 'pointer',
+                  opacity: outOfStock ? 0.45 : 1, textAlign: 'left', width: '100%'
+                }}
+              >
+                <div>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: C.text }}>
+                    {v.color || 'No Color'} {v.storage ? ` / ${v.storage}` : ''}
+                  </span>
+                  <span style={{ display: 'block', fontSize: 10, color: C.textMuted, marginTop: 2 }}>Stock: {v.stock} | SKU: {v.sku || 'N/A'}</span>
+                </div>
+                <span style={{ fontWeight: 800, color: C.green, fontSize: 13 }}>{formatPrice(price)}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button type="button" onClick={onCancel} style={{ flex: 1, padding: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, fontWeight: 700, color: C.textSub, cursor: 'pointer' }}>Cancel</button>
+          <button type="button" onClick={() => onSelect(selectedVariant)} disabled={!selectedVariant} style={{ flex: 1, padding: 10, background: C.accent, border: 'none', borderRadius: 10, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: !selectedVariant ? 0.5 : 1 }}>Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Add Customer Modal ────────────────────────────────────────────────────────
+function AddCustomerModal({ onCancel, onSave }) {
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.firstName || !form.email) {
+      toast.error('First Name and Email are required');
+      return;
+    }
+    onSave(form);
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+      <form onSubmit={handleSubmit} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, width: 400, padding: 28, boxShadow: '0 24px 60px rgba(15,23,42,0.18)' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: C.text }}>Add New Customer</h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: C.textSub, marginBottom: 5 }}>FIRST NAME *</label>
+            <input type="text" required value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${C.border}`, outline: 'none', background: C.surfaceAlt, color: C.text }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: C.textSub, marginBottom: 5 }}>LAST NAME</label>
+            <input type="text" value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${C.border}`, outline: 'none', background: C.surfaceAlt, color: C.text }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: C.textSub, marginBottom: 5 }}>EMAIL ADDRESS *</label>
+            <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${C.border}`, outline: 'none', background: C.surfaceAlt, color: C.text }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: C.textSub, marginBottom: 5 }}>PHONE NUMBER</label>
+            <input type="text" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${C.border}`, outline: 'none', background: C.surfaceAlt, color: C.text }} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button type="button" onClick={onCancel} style={{ flex: 1, padding: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, fontWeight: 700, color: C.textSub, cursor: 'pointer' }}>Cancel</button>
+          <button type="submit" style={{ flex: 1, padding: 10, background: C.accent, border: 'none', borderRadius: 10, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>Save Customer</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+// ─── Held Carts Modal ─────────────────────────────────────────────────────────
+function HeldCartsModal({ heldCarts, onResume, onDelete, onCancel }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, width: 460, padding: 28, boxShadow: '0 24px 60px rgba(15,23,42,0.18)', display: 'flex', flexDirection: 'column', maxHeight: '80vh' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: C.text }}>Held Carts</h3>
+        
+        {heldCarts.length === 0 ? (
+          <p style={{ textAlign: 'center', padding: '20px 0', color: C.textMuted, fontSize: 13 }}>No carts currently on hold.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, overflowY: 'auto', marginBottom: 20 }}>
+            {heldCarts.map(c => {
+              const itemsCount = c.cart.reduce((acc, item) => acc + item.quantity, 0);
+              return (
+                <div
+                  key={c.id}
+                  onClick={() => onResume(c.id)}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px',
+                    background: C.surfaceAlt, border: `1px solid ${C.border}`, borderRadius: 10, cursor: 'pointer',
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>{c.tag}</div>
+                    <div style={{ fontSize: 10, color: C.textMuted, marginTop: 4 }}>{itemsCount} items | Hold: {c.createdAt}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => onDelete(e, c.id)}
+                    style={{ width: 28, height: 28, background: C.redBg, border: 'none', borderRadius: 8, color: C.red, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <RiDeleteBin6Line size={13} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <button type="button" onClick={onCancel} style={{ padding: 10, background: C.surfaceAlt, border: `1px solid ${C.border}`, borderRadius: 10, fontWeight: 700, color: C.textSub, cursor: 'pointer', width: '100%' }}>
+          Close
+        </button>
+      </div>
     </div>
   );
 }
