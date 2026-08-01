@@ -101,12 +101,44 @@ function PageTransitionLoader() {
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
+function SiteSettingsSync() {
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.get('/settings').then((r) => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.shopName) {
+        document.title = settings.shopName;
+      }
+      if (settings.logoUrl) {
+        const link = document.querySelector("link[rel~='icon']");
+        if (link) {
+          link.href = settings.logoUrl;
+          if (settings.logoUrl.endsWith('.png')) {
+            link.type = 'image/png';
+          } else if (settings.logoUrl.endsWith('.svg')) {
+            link.type = 'image/svg+xml';
+          } else if (settings.logoUrl.endsWith('.ico')) {
+            link.type = 'image/x-icon';
+          }
+        }
+      }
+    }
+  }, [settings]);
+
+  return null;
+}
+
 export default function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '105828472910-dummy-google-client-id.apps.googleusercontent.com';
 
   return (
     <GoogleOAuthProvider clientId={googleClientId} locale="en">
       <QueryClientProvider client={queryClient}>
+        <SiteSettingsSync />
         <BrowserRouter>
           <ScrollToTop />
           <PageTransitionLoader />
