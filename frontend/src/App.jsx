@@ -117,12 +117,19 @@ function SiteSettingsSync() {
         const link = document.querySelector("link[rel~='icon']");
         if (link) {
           link.href = settings.logoUrl;
-          if (settings.logoUrl.endsWith('.png')) {
+          const lowerUrl = settings.logoUrl.toLowerCase();
+          if (lowerUrl.endsWith('.png')) {
             link.type = 'image/png';
-          } else if (settings.logoUrl.endsWith('.svg')) {
+          } else if (lowerUrl.endsWith('.svg')) {
             link.type = 'image/svg+xml';
-          } else if (settings.logoUrl.endsWith('.ico')) {
+          } else if (lowerUrl.endsWith('.ico')) {
             link.type = 'image/x-icon';
+          } else if (lowerUrl.endsWith('.webp')) {
+            link.type = 'image/webp';
+          } else if (lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg')) {
+            link.type = 'image/jpeg';
+          } else {
+            link.removeAttribute('type');
           }
         }
       }
