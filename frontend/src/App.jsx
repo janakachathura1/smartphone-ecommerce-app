@@ -78,7 +78,7 @@ function PageTransitionLoader() {
   if (!loading) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-md pointer-events-none animate-fade-in">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/75 backdrop-blur-xl pointer-events-none animate-fade-in">
       <div className="relative w-16 h-16">
         {/* Outer Ring (Clockwise) */}
         <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-600 animate-spin" />

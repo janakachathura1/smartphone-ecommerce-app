@@ -44,7 +44,7 @@ export default function Footer() {
                   src={settings.logoUrl} 
                   alt={settings?.shopName || 'TechPulse'} 
                   onError={() => setLogoFailed(true)}
-                  className="h-10 w-auto object-contain brightness-0 invert" 
+                  className="h-10 w-auto object-contain" 
                 />
               ) : (
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
