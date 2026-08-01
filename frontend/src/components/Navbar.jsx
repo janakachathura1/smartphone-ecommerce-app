@@ -121,8 +121,8 @@ export default function Navbar() {
               </button>
 
               {/* ── Logo ── */}
-              <Link
-                to="/"
+              <a
+                href="/"
                 className={`flex items-center gap-2 group ${isLoading ? 'opacity-50' : ''} flex-shrink-0`}
               >
                 {settings?.logoUrl && !logoFailed ? (
@@ -144,7 +144,7 @@ export default function Navbar() {
                     ))}
                   </span>
                 </div>
-              </Link>
+              </a>
 
               {/* ── Desktop Nav Links ── */}
               <nav className="hidden lg:flex items-center ml-8 gap-0 h-full">
@@ -390,7 +390,7 @@ export default function Navbar() {
 
             {/* Drawer header */}
             <div className="flex items-center justify-between px-5 py-5 border-b border-secondary-100 flex-shrink-0">
-              <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5">
+              <a href="/" className="flex items-center gap-2.5">
                 {settings?.logoUrl && !logoFailed && (
                   <img 
                     src={settings.logoUrl} 
@@ -403,7 +403,7 @@ export default function Navbar() {
                   <span className="text-[8px] font-bold text-primary-600 tracking-[0.3em] uppercase">Official</span>
                   <span className="text-base font-black text-secondary-950 tracking-wide uppercase">{shopName}</span>
                 </div>
-              </Link>
+              </a>
               <button
                 onClick={() => setMobileOpen(false)}
                 className="p-2 rounded-lg text-secondary-500 hover:text-secondary-900 hover:bg-secondary-50 transition-colors"

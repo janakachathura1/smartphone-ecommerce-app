@@ -10,8 +10,8 @@ export const searchSuggestions = async (req, res) => {
       where: {
         isActive: true,
         OR: [
-          { name: { contains: q } },
-          { shortDesc: { contains: q } },
+          { name: { contains: q, mode: 'insensitive' } },
+          { shortDesc: { contains: q, mode: 'insensitive' } },
         ],
       },
       select: {
@@ -23,12 +23,12 @@ export const searchSuggestions = async (req, res) => {
       orderBy: { soldCount: 'desc' },
     }),
     prisma.brand.findMany({
-      where: { name: { contains: q } },
+      where: { name: { contains: q, mode: 'insensitive' } },
       select: { id: true, name: true, slug: true, logo: true },
       take: 3,
     }),
     prisma.category.findMany({
-      where: { name: { contains: q } },
+      where: { name: { contains: q, mode: 'insensitive' } },
       select: { id: true, name: true, slug: true },
       take: 3,
     }),
@@ -51,9 +51,9 @@ export const getProducts = async (req, res) => {
 
   if (search) {
     where.OR = [
-      { name: { contains: search } },
-      { shortDesc: { contains: search } },
-      { description: { contains: search } },
+      { name: { contains: search, mode: 'insensitive' } },
+      { shortDesc: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
     ];
   }
   if (brand) where.brand = { slug: brand };
@@ -63,11 +63,11 @@ export const getProducts = async (req, res) => {
     if (minPrice) where.finalPrice.gte = parseFloat(minPrice);
     if (maxPrice) where.finalPrice.lte = parseFloat(maxPrice);
   }
-  if (ram) where.ram = { contains: ram };
-  if (storage) where.storage = { contains: storage };
-  if (battery) where.battery = { contains: battery };
+  if (ram) where.ram = { contains: ram, mode: 'insensitive' };
+  if (storage) where.storage = { contains: storage, mode: 'insensitive' };
+  if (battery) where.battery = { contains: battery, mode: 'insensitive' };
   if (has5G !== undefined) where.has5G = has5G === 'true';
-  if (os) where.os = { contains: os };
+  if (os) where.os = { contains: os, mode: 'insensitive' };
   if (isFeatured === 'true') where.isFeatured = true;
   if (isNewArrival === 'true') where.isNewArrival = true;
   if (isBestSeller === 'true') where.isBestSeller = true;

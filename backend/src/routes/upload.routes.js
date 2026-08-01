@@ -85,10 +85,10 @@ router.post('/', authenticate, upload.single('file'), async (req, res) => {
     }
   }
 
-  // Fallback to Base64 data URL for images only (videos are too large for Base64)
+  // Fallback to Base64 data URL for images only if on Vercel (since local files are ephemeral on Vercel serverless)
   const isImage = req.file.mimetype.startsWith('image/');
   
-  if (isImage) {
+  if (isImage && process.env.VERCEL) {
     try {
       const fileBuffer = fs.readFileSync(req.file.path);
       const mimeType = req.file.mimetype;

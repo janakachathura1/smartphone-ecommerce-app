@@ -161,6 +161,7 @@ export default function LoginPage() {
                 size="large"
                 width="100%"
                 text="signin_with"
+                locale="en"
               />
             </div>
           </div>

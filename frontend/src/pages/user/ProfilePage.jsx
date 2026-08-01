@@ -40,7 +40,9 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      const uploadRes = await api.post('/upload', formData);
+      const uploadRes = await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       const avatarUrl = uploadRes.data.data.url;
       const updateRes = await api.put('/users/profile', { avatar: avatarUrl });
       updateUser(updateRes.data.data.user);

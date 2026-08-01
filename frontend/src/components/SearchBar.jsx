@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   RiSearchLine, RiCloseLine, RiFlashlightLine,
   RiStoreLine, RiArrowRightLine, RiLoader4Line,
+  RiHistoryLine,
 } from 'react-icons/ri';
 import api from '../lib/api';
 import { formatPrice } from '../lib/utils';
@@ -43,6 +44,30 @@ export default function SearchBar({ onClose, autoFocus = false, placeholder = 'S
   const containerRef = useRef(null);
   const abortRef = useRef(null);
   const debouncedQuery = useDebounce(query, 280);
+
+  const [recent, setRecent] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const addRecentSearch = useCallback((term) => {
+    if (!term.trim()) return;
+    const cleanTerm = term.trim();
+    setRecent((prev) => {
+      const updated = [cleanTerm, ...prev.filter((r) => r.toLowerCase() !== cleanTerm.toLowerCase())].slice(0, 5);
+      localStorage.setItem('recentSearches', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const clearRecent = useCallback((e) => {
+    e.stopPropagation();
+    setRecent([]);
+    localStorage.removeItem('recentSearches');
+  }, []);
 
   // Auto-focus when told to
   useEffect(() => {
@@ -91,17 +116,19 @@ export default function SearchBar({ onClose, autoFocus = false, placeholder = 'S
   ];
 
   const goToItem = useCallback((entry) => {
+    addRecentSearch(query);
     if (entry.type === 'product') navigate(`/product/${entry.item.slug || entry.item.id}`);
     else if (entry.type === 'brand') navigate(`/shop?brand=${entry.item.slug}`);
     else navigate(`/shop?category=${entry.item.slug}`);
     setQuery('');
     setOpen(false);
     onClose?.();
-  }, [navigate, onClose]);
+  }, [navigate, onClose, addRecentSearch, query]);
 
   const handleSearch = (e) => {
     e?.preventDefault();
     if (!query.trim()) return;
+    addRecentSearch(query);
     navigate(`/shop?search=${encodeURIComponent(query.trim())}`);
     setQuery('');
     setOpen(false);
@@ -148,7 +175,7 @@ export default function SearchBar({ onClose, autoFocus = false, placeholder = 'S
           type="search"
           value={query}
           onChange={(e) => { setQuery(e.target.value); if (e.target.value.length >= 2) setOpen(true); }}
-          onFocus={() => { if (results && query.length >= 2) setOpen(true); }}
+          onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           autoComplete="off"
@@ -186,8 +213,72 @@ export default function SearchBar({ onClose, autoFocus = false, placeholder = 'S
           overflow-hidden
           animate-fade-in
         ">
+          {/* Empty query: show Recent Searches and Popular tags */}
+          {query.length < 2 && (
+            <div className="p-4 space-y-4">
+              {recent.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary-400">Recent Searches</span>
+                    <button
+                      type="button"
+                      onClick={clearRecent}
+                      className="text-[10px] font-semibold text-red-500 hover:underline"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {recent.map((term, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setQuery(term);
+                          navigate(`/shop?search=${encodeURIComponent(term)}`);
+                          setOpen(false);
+                          onClose?.();
+                        }}
+                        className="flex items-center gap-2.5 text-left text-sm text-secondary-700 hover:text-primary-600 hover:bg-secondary-50 px-2 py-1.5 rounded-lg transition-colors"
+                      >
+                        <RiHistoryLine size={14} className="text-secondary-400" />
+                        <span>{term}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary-400 block mb-2.5">Popular Brands</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: 'Apple', slug: 'apple' },
+                    { name: 'Samsung', slug: 'samsung' },
+                    { name: 'Xiaomi', slug: 'xiaomi' },
+                    { name: 'OnePlus', slug: 'oneplus' },
+                    { name: 'Google', slug: 'google' }
+                  ].map((brand) => (
+                    <button
+                      key={brand.slug}
+                      type="button"
+                      onClick={() => {
+                        navigate(`/shop?brand=${brand.slug}`);
+                        setOpen(false);
+                        onClose?.();
+                      }}
+                      className="text-xs font-semibold text-secondary-700 bg-secondary-50 border border-secondary-200/60 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 px-3 py-1.5 rounded-xl transition-all duration-200 active:scale-[0.97]"
+                    >
+                      {brand.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* No results */}
-          {isEmpty && (
+          {query.length >= 2 && isEmpty && (
             <div className="px-5 py-8 text-center">
               <div className="w-12 h-12 rounded-2xl bg-secondary-50 flex items-center justify-center mx-auto mb-3">
                 <RiSearchLine size={22} className="text-secondary-300" />

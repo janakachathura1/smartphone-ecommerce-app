@@ -78,7 +78,7 @@ export const getAllUsers = async (req, res) => {
   const { page = 1, limit = 20, search } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const where = search
-    ? { OR: [{ email: { contains: search } }, { firstName: { contains: search } }, { lastName: { contains: search } }] }
+    ? { OR: [{ email: { contains: search, mode: 'insensitive' } }, { firstName: { contains: search, mode: 'insensitive' } }, { lastName: { contains: search, mode: 'insensitive' } }] }
     : {};
 
   const [users, total] = await prisma.$transaction([

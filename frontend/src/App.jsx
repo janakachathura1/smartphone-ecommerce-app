@@ -68,47 +68,33 @@ function ScrollToTop() {
 function PageTransitionLoader() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
-  const { data: settings } = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => api.get('/settings').then((r) => r.data.data),
-    staleTime: Infinity,
-    enabled: !!localStorage.getItem('token') || true // Always try to get settings
-  });
-
-  const shopName = settings?.shopName || 'TechPulse';
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 500);
+    const timer = setTimeout(() => setLoading(false), 2000); // 2 seconds loader duration
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
   if (!loading) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/40 backdrop-blur-2xl transition-all duration-700 animate-fade-in pointer-events-none">
-      <div className="relative flex flex-col items-center space-y-8">
-        {/* Compact Spinner Element */}
-        <div className="relative w-24 h-24 flex items-center justify-center">
-           <div className="absolute inset-0 rounded-full border-[1.5px] border-primary-100 border-t-primary-600 animate-spin" />
-           <div className="w-12 h-12 bg-white border border-primary-100 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-200/40 animate-pulse">
-              <span className="text-primary-600 font-black text-xl italic">{shopName.charAt(0)}</span>
-           </div>
-        </div>
-
-        {/* Minimalist Branded Text */}
-        <div className="text-center">
-          <h2 className="text-2xl font-black text-secondary-950 tracking-[0.2em] uppercase italic shimmer-text opacity-95">
-            {shopName}
-          </h2>
-          <div className="flex items-center justify-center gap-2 mt-4">
-             <div className="w-1 h-1 rounded-full bg-secondary-950 animate-pulse" />
-             <p className="text-[10px] font-black text-secondary-950 tracking-[0.4em] uppercase opacity-70">
-                Establishing Channel
-             </p>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-md pointer-events-none animate-fade-in">
+      <div className="relative w-16 h-16">
+        {/* Outer Ring (Clockwise) */}
+        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-600 animate-spin" />
+        {/* Inner Ring (Counter-Clockwise) */}
+        <div className="absolute inset-1.5 rounded-full border-4 border-transparent border-t-secondary-400" style={{
+          animation: 'spin-reverse 1.2s linear infinite'
+        }} />
+        {/* Center Dot */}
+        <div className="absolute inset-[22px] rounded-full bg-primary-500 animate-pulse" />
       </div>
+      <style>{`
+        @keyframes spin-reverse {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -119,7 +105,7 @@ export default function App() {
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '105828472910-dummy-google-client-id.apps.googleusercontent.com';
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
+    <GoogleOAuthProvider clientId={googleClientId} locale="en">
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <ScrollToTop />

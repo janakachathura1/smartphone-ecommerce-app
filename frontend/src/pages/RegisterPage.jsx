@@ -170,7 +170,8 @@ export default function RegisterPage() {
                 shape="pill"
                 size="large"
                 width="100%"
-                text="signup_with"
+                text="signin_with"
+                locale="en"
               />
             </div>
           </div>
