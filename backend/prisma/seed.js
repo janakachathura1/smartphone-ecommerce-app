@@ -56,9 +56,21 @@ async function main() {
     { name: 'Apple', slug: 'apple', logo: 'https://placehold.co/80x80/1a1a1a/ffffff?text=Apple' },
     { name: 'Samsung', slug: 'samsung', logo: 'https://placehold.co/80x80/1428a0/ffffff?text=Samsung' },
     { name: 'Xiaomi', slug: 'xiaomi', logo: 'https://placehold.co/80x80/ff6900/ffffff?text=Xiaomi' },
+    { name: 'Redmi', slug: 'redmi', logo: 'https://placehold.co/80x80/ff6900/ffffff?text=Redmi' },
+    { name: 'Honor', slug: 'honor', logo: 'https://placehold.co/80x80/000000/ffffff?text=Honor' },
+    { name: 'Oppo', slug: 'oppo', logo: 'https://placehold.co/80x80/008a00/ffffff?text=Oppo' },
+    { name: 'Vivo', slug: 'vivo', logo: 'https://placehold.co/80x80/4169e1/ffffff?text=Vivo' },
     { name: 'OnePlus', slug: 'oneplus', logo: 'https://placehold.co/80x80/f5010c/ffffff?text=OnePlus' },
-    { name: 'Google', slug: 'google', logo: 'https://placehold.co/80x80/4285f4/ffffff?text=Google' },
     { name: 'Realme', slug: 'realme', logo: 'https://placehold.co/80x80/ffd700/1a1a1a?text=Realme' },
+    { name: 'Huawei', slug: 'huawei', logo: 'https://placehold.co/80x80/ff0000/ffffff?text=Huawei' },
+    { name: 'Google', slug: 'google', logo: 'https://placehold.co/80x80/4285f4/ffffff?text=Google' },
+    { name: 'Nothing', slug: 'nothing', logo: 'https://placehold.co/80x80/000000/ffffff?text=Nothing' },
+    { name: 'Infinix', slug: 'infinix', logo: 'https://placehold.co/80x80/00ff00/000000?text=Infinix' },
+    { name: 'Tecno', slug: 'tecno', logo: 'https://placehold.co/80x80/0000ff/ffffff?text=Tecno' },
+    { name: 'Nokia', slug: 'nokia', logo: 'https://placehold.co/80x80/00008b/ffffff?text=Nokia' },
+    { name: 'ZTE', slug: 'zte', logo: 'https://placehold.co/80x80/0000ff/ffffff?text=ZTE' },
+    { name: 'Lenovo', slug: 'lenovo', logo: 'https://placehold.co/80x80/e11936/ffffff?text=Lenovo' },
+    { name: 'Amazfit', slug: 'amazfit', logo: 'https://placehold.co/80x80/ff3b30/ffffff?text=Amazfit' },
   ];
   const brands = {};
   for (const b of brandsData) {
@@ -68,9 +80,24 @@ async function main() {
   console.log('✅ Brands created');
 
   // Categories
-  const cat = await prisma.category.create({
-    data: { name: 'Smartphones', slug: 'smartphones', description: 'All smartphones' },
-  });
+  const categoriesData = [
+    { name: 'Mobile Phones', slug: 'mobile-phones', description: 'Smartphones and feature phones' },
+    { name: 'Tablets', slug: 'tablets', description: 'iPads and Android tablets' },
+    { name: 'Smart Watches & Wearables', slug: 'smart-watches-wearables', description: 'Smartwatches, fitness bands, and trackers' },
+    { name: 'Audio', slug: 'audio', description: 'Earbuds, earphones, headphones, and speakers' },
+    { name: 'Chargers & Power', slug: 'chargers-power', description: 'Wall chargers, cables, and power banks' },
+    { name: 'Phone Protection', slug: 'phone-protection', description: 'Phone cases, covers, and screen protection' },
+    { name: 'Mobile Accessories', slug: 'mobile-accessories', description: 'Stands, mounts, OTG adapters, and more' },
+    { name: 'Laptop & Computer', slug: 'laptop-computer', description: 'Laptops, MacBooks, and peripherals' },
+    { name: 'Smart / Tech Gadgets', slug: 'smart-tech-gadgets', description: 'Trackers, smart glasses, and tech gadgets' },
+    { name: 'Gaming', slug: 'gaming', description: 'Consoles, controllers, and gaming gear' },
+    { name: 'Repair & Spare Parts', slug: 'repair-spare-parts', description: 'Displays, battery replacements, and parts' },
+    { name: 'Used / Pre-owned Phones', slug: 'used-pre-owned-phones', description: 'Used iPhones, used Samsung, and refurbished devices' },
+  ];
+  const categories = {};
+  for (const c of categoriesData) {
+    categories[c.slug] = await prisma.category.create({ data: c });
+  }
 
   console.log('✅ Categories created');
 
@@ -376,7 +403,7 @@ async function main() {
         ...productData,
         finalPrice: Math.round(finalPrice * 100) / 100,
         brandId: brand.id,
-        categoryId: cat.id,
+        categoryId: categories['mobile-phones'].id,
         rating: +(Math.random() * 1.5 + 3.5).toFixed(1),
         reviewCount: Math.floor(Math.random() * 200 + 20),
         soldCount: Math.floor(Math.random() * 500 + 50),

@@ -11,10 +11,74 @@ import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
 import { useWishlistStore } from '../store/wishlistStore';
 import { useCompareStore } from '../store/useCompareStore';
+import { useRecentlyViewedStore } from '../store/useRecentlyViewedStore';
 import { getInitials, formatPrice } from '../lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import SearchBar from './SearchBar';
+
+const SUBCATEGORIES_MAP = {
+  'mobile-phones': {
+    name: 'Mobile Phones',
+    subcategories: ['iPhone', 'Samsung', 'Xiaomi / Redmi', 'Honor', 'Oppo', 'Vivo', 'OnePlus', 'Realme', 'Huawei', 'Google Pixel', 'Nothing', 'Infinix', 'Tecno', 'Nokia', 'ZTE', 'Basic / Feature Phones'],
+    brands: ['Apple', 'Samsung', 'Xiaomi', 'Redmi', 'Honor', 'Oppo', 'Vivo', 'OnePlus', 'Realme', 'Huawei', 'Google', 'Nothing', 'Infinix', 'Tecno', 'Nokia', 'ZTE']
+  },
+  'tablets': {
+    name: 'Tablets',
+    subcategories: ['iPad', 'Samsung Galaxy Tab', 'Xiaomi', 'Huawei', 'Lenovo', 'Other Brands'],
+    brands: ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Lenovo']
+  },
+  'smart-watches-wearables': {
+    name: 'Smart Watches & Wearables',
+    subcategories: ['Apple Watch', 'Samsung Galaxy Watch', 'Huawei Watch', 'Amazfit', 'Xiaomi', 'Fitness Bands'],
+    brands: ['Apple', 'Samsung', 'Huawei', 'Amazfit', 'Xiaomi']
+  },
+  'audio': {
+    name: 'Audio',
+    subcategories: ['TWS Earbuds', 'Bluetooth Earphones', 'Wired Earphones', 'Headphones', 'Bluetooth Speakers', 'Portable Speakers'],
+    brands: ['Apple', 'Samsung', 'Xiaomi', 'Sony', 'Logitech', 'Razer']
+  },
+  'chargers-power': {
+    name: 'Chargers & Power',
+    subcategories: ['Wall Chargers', 'Fast Chargers', 'Wireless Chargers', 'Car Chargers', 'Charging Cables', 'Power Banks', 'Charging Stations'],
+    brands: ['Anker', 'Baseus', 'Samsung', 'Apple']
+  },
+  'phone-protection': {
+    name: 'Phone Protection',
+    subcategories: ['Phone Cases', 'Silicone Cases', 'Leather Cases', 'Clear Cases', 'Tempered Glass', 'Privacy Glass', 'Camera Lens Protectors'],
+    brands: ['Spigen', 'Apple', 'Samsung']
+  },
+  'mobile-accessories': {
+    name: 'Mobile Accessories',
+    subcategories: ['Phone Holders', 'Car Mounts', 'Mobile Stands', 'OTG Adapters', 'USB Hubs', 'HDMI Adapters', 'Memory Cards', 'SIM Accessories'],
+    brands: ['Anker', 'Baseus']
+  },
+  'laptop-computer': {
+    name: 'Laptop & Computer',
+    subcategories: ['Laptops', 'MacBooks', 'Laptop Bags', 'Mouse', 'Keyboard', 'USB Hubs', 'Laptop Chargers'],
+    brands: ['Apple', 'Lenovo', 'Huawei', 'Logitech', 'Razer']
+  },
+  'smart-tech-gadgets': {
+    name: 'Smart / Tech Gadgets',
+    subcategories: ['Smart Glasses', 'Smart Trackers', 'Gimbals', 'Smart Devices', 'Pocket Wi-Fi', 'Mini Projectors'],
+    brands: ['Apple', 'Samsung', 'Xiaomi']
+  },
+  'gaming': {
+    name: 'Gaming',
+    subcategories: ['Gaming Consoles', 'Game Controllers', 'Gaming Headsets', 'Mobile Gaming Accessories'],
+    brands: ['Sony', 'Razer', 'Logitech']
+  },
+  'repair-spare-parts': {
+    name: 'Repair & Spare Parts',
+    subcategories: ['Displays', 'Batteries', 'Charging Ports', 'Camera Modules', 'Speakers', 'Back Covers', 'Other Spare Parts'],
+    brands: ['Apple', 'Samsung', 'Xiaomi']
+  },
+  'used-pre-owned-phones': {
+    name: 'Used / Pre-owned Phones',
+    subcategories: ['Used iPhone', 'Used Samsung', 'Used Android', 'Refurbished Phones'],
+    brands: ['Apple', 'Samsung', 'Xiaomi', 'Google']
+  }
+};
 
 export default function Navbar() {
   const { user, logout, isAuthenticated, isLoading } = useAuthStore();
@@ -32,6 +96,7 @@ export default function Navbar() {
   });
   const shopName = settings?.shopName || 'TechPulse';
 
+  const [activeNavCategory, setActiveNavCategory] = useState('mobile-phones');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -53,6 +118,29 @@ export default function Navbar() {
     enabled: showShopMenu,
   });
   const navNewArrivals = arrivalsData || [];
+
+  const { recentlyViewed } = useRecentlyViewedStore();
+  const recentBrandIds = [...new Set(recentlyViewed.map((p) => p.brandId || p.brand?.id).filter(Boolean))];
+
+  const { data: recommendedData } = useQuery({
+    queryKey: ['nav-recommended-products', recentBrandIds],
+    queryFn: () => api.get('/products', {
+      params: {
+        limit: 2,
+        isFeatured: true,
+        brandId: recentBrandIds[0] || undefined,
+      }
+    }).then((r) => r.data?.data?.products || []),
+    enabled: showShopMenu,
+  });
+  const navRecommended = recommendedData || [];
+
+  const { data: brandsData } = useQuery({
+    queryKey: ['nav-brands'],
+    queryFn: () => api.get('/brands').then((r) => r.data?.data?.brands || []),
+    enabled: showShopMenu,
+  });
+  const navBrands = brandsData || [];
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -184,57 +272,104 @@ export default function Navbar() {
                     {/* Mega menu */}
                     {link.hasMenu && showShopMenu && (
                       <div
-                        className="absolute top-full left-0 mt-0 w-[800px] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.15)] rounded-b-3xl border-t border-secondary-100 z-50 animate-fade-in-up"
+                        className="absolute top-full left-0 mt-0.5 w-[940px] bg-white shadow-[0_30px_70px_rgba(0,0,0,0.12)] rounded-3xl border border-secondary-100/80 z-50 animate-fade-in-up"
                         onMouseEnter={handleShopMouseEnter}
                         onMouseLeave={handleShopMouseLeave}
                       >
-                        <div className="grid grid-cols-12 gap-8 p-8">
-                          {/* Categories */}
-                          <div className="col-span-8 border-r border-secondary-50 pr-8">
-                            <div className="flex items-center justify-between mb-6">
-                              <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-secondary-400">Browse Categories</h4>
-                              <Link to="/shop" onClick={() => setShowShopMenu(false)} className="text-[9px] font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 transition-colors">
-                                View Gallery →
-                              </Link>
+                        <div className="p-6">
+                          <div className="grid grid-cols-12 gap-6">
+                            {/* Left Categories Sidebar (4 cols) */}
+                            <div className="col-span-4 border-r border-secondary-50 pr-4">
+                              <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-secondary-400 mb-4 px-2">Categories</h4>
+                              <div className="flex flex-col gap-1 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
+                                {navCategories.map((cat) => {
+                                  const isActive = activeNavCategory === cat.slug;
+                                  return (
+                                    <button
+                                      key={cat.id}
+                                      onMouseEnter={() => setActiveNavCategory(cat.slug)}
+                                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200 border border-transparent
+                                        ${isActive 
+                                          ? 'bg-gradient-to-r from-primary-50 to-primary-100/30 text-primary-700 font-bold border-primary-100/50' 
+                                          : 'text-secondary-650 hover:bg-secondary-50/70 hover:text-secondary-900'
+                                        }`}
+                                    >
+                                      <span className="text-xs tracking-wide">{cat.name}</span>
+                                      <RiArrowRightSLine 
+                                        size={14} 
+                                        className={`transition-all duration-300 ${isActive ? 'translate-x-0.5 text-primary-600 opacity-100' : 'opacity-0 -translate-x-1'}`} 
+                                      />
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-1">
-                              {navCategories.slice(0, 9).map((cat) => (
-                                <Link
-                                  key={cat.id}
-                                  to={`/shop?category=${cat.slug}`}
-                                  onClick={() => setShowShopMenu(false)}
-                                  className="group/cat flex items-center gap-3 px-3 py-2.5 hover:bg-primary-50/50 transition-all rounded-xl"
-                                >
-                                  <div className="w-8 h-8 rounded-lg bg-secondary-50 flex items-center justify-center flex-shrink-0 group-hover/cat:bg-primary-600 transition-colors">
-                                    <RiFlashlightLine size={13} className="text-secondary-400 group-hover/cat:text-white transition-colors" />
-                                  </div>
-                                  <span className="text-sm font-bold text-secondary-600 group-hover/cat:text-secondary-950 transition-colors">{cat.name}</span>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
 
-                          {/* New Arrivals */}
-                          <div className="col-span-4">
-                            <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-secondary-400 mb-6">Trending Now</h4>
-                            <div className="space-y-3">
-                              {navNewArrivals.slice(0, 2).map((product) => (
-                                <Link
-                                  key={product.id}
-                                  to={`/product/${product.slug || product.id}`}
-                                  onClick={() => setShowShopMenu(false)}
-                                  className="group flex gap-3 p-2.5 hover:bg-secondary-50 rounded-2xl transition-all border border-transparent hover:border-secondary-100"
-                                >
-                                  <div className="w-14 h-14 rounded-xl bg-white border border-secondary-50 p-1.5 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                    <img src={product.images?.[0]?.url || '/placeholder-device.png'} alt={product.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
-                                  </div>
-                                  <div className="flex flex-col justify-center">
-                                    <p className="text-[9px] font-black text-primary-600 uppercase tracking-widest leading-none mb-1">{product.brand?.name}</p>
-                                    <h5 className="text-xs font-black text-secondary-900 line-clamp-1">{product.name}</h5>
-                                    <p className="text-xs font-bold text-secondary-500 mt-1">{formatPrice(product.finalPrice)}</p>
-                                  </div>
-                                </Link>
-                              ))}
+                            {/* Right Content Area (8 cols) */}
+                            <div className="col-span-8 flex flex-col justify-between pl-2">
+                              {(() => {
+                                const currentCatInfo = SUBCATEGORIES_MAP[activeNavCategory] || SUBCATEGORIES_MAP['mobile-phones'];
+                                return (
+                                  <>
+                                    <div className="grid grid-cols-12 gap-6">
+                                      {/* Subcategories column (7 cols) */}
+                                      <div className="col-span-8">
+                                        <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-secondary-400 mb-4">
+                                          {currentCatInfo.name} Subcategories
+                                        </h4>
+                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 max-h-[280px] overflow-y-auto pr-1">
+                                          {currentCatInfo.subcategories.map((sub) => (
+                                            <Link
+                                              key={sub}
+                                              to={`/shop?category=${activeNavCategory}&search=${encodeURIComponent(sub)}`}
+                                              onClick={() => setShowShopMenu(false)}
+                                              className="group/sub flex items-center gap-1.5 py-1 text-xs text-secondary-650 hover:text-primary-700 transition-colors"
+                                            >
+                                              <span className="w-1 h-1 rounded-full bg-secondary-300 group-hover/sub:bg-primary-500 group-hover/sub:scale-125 transition-all" />
+                                              <span className="font-semibold line-clamp-1">{sub}</span>
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      {/* Quick brands column (4 cols) */}
+                                      <div className="col-span-4">
+                                        <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-secondary-400 mb-4">
+                                          Popular Brands
+                                        </h4>
+                                        <div className="flex flex-wrap gap-1.5 max-h-[280px] overflow-y-auto">
+                                          {currentCatInfo.brands.map((brand) => (
+                                            <Link
+                                              key={brand}
+                                              to={`/shop?brand=${brand.toLowerCase()}`}
+                                              onClick={() => setShowShopMenu(false)}
+                                              className="text-[10px] font-bold text-secondary-650 bg-secondary-50 hover:bg-primary-600 hover:text-white px-2.5 py-1 rounded-full transition-all duration-300 hover:-translate-y-0.5"
+                                            >
+                                              {brand}
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Bottom Features Info Bar */}
+                                    <div className="flex items-center justify-between pt-4 border-t border-secondary-100 mt-6 flex-wrap gap-2 text-[10px] font-black uppercase tracking-wider text-secondary-400">
+                                      <span className="flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        Genuine Products Only
+                                      </span>
+                                      <span className="flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        1-Year Shop Warranty
+                                      </span>
+                                      <span className="flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        Safe Card Checkout
+                                      </span>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>

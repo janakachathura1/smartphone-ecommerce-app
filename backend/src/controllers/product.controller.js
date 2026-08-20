@@ -189,13 +189,33 @@ export const getBestSellers = async (req, res) => {
 export const createProduct = async (req, res) => {
   const { images = [], variants = [], ...data } = req.body;
 
-  if (data.basePrice && data.discountPercent !== undefined) {
-    data.finalPrice = parseFloat(data.basePrice) * (1 - parseFloat(data.discountPercent) / 100);
+  // Validate required relationships and price
+  if (!data.name || !data.name.trim()) {
+    return res.status(400).json({ success: false, message: 'Product Name is required' });
+  }
+  if (!data.brandId) {
+    return res.status(400).json({ success: false, message: 'Please select a Brand' });
+  }
+  if (!data.categoryId) {
+    return res.status(400).json({ success: false, message: 'Please select a Category' });
   }
 
-  // Parse new fields
-  if (data.installmentPrice !== undefined && data.installmentPrice !== null) {
+  const basePriceNum = parseFloat(data.basePrice) || 0;
+  if (basePriceNum <= 0) {
+    return res.status(400).json({ success: false, message: 'Original Price (LKR) is required and must be greater than 0' });
+  }
+
+  const discountNum = parseFloat(data.discountPercent) || 0;
+  data.basePrice = basePriceNum;
+  data.discountPercent = discountNum;
+  data.finalPrice = Math.round(basePriceNum * (1 - discountNum / 100) * 100) / 100;
+  data.stock = parseInt(data.stock) || 0;
+
+  // Parse optional numeric / boolean fields
+  if (data.installmentPrice !== undefined && data.installmentPrice !== null && data.installmentPrice !== '') {
     data.installmentPrice = parseFloat(data.installmentPrice) || null;
+  } else {
+    data.installmentPrice = null;
   }
   if (data.nfc !== undefined) {
     data.nfc = data.nfc === true || data.nfc === 'true';
@@ -244,19 +264,31 @@ export const updateProduct = async (req, res) => {
   const { id } = req.params;
   const { images, variants, ...data } = req.body;
 
-  if (data.basePrice && data.discountPercent !== undefined) {
-    data.finalPrice = parseFloat(data.basePrice) * (1 - parseFloat(data.discountPercent) / 100);
+  if (data.basePrice !== undefined) {
+    const basePriceNum = parseFloat(data.basePrice) || 0;
+    const discountNum = parseFloat(data.discountPercent !== undefined ? data.discountPercent : 0) || 0;
+    data.basePrice = basePriceNum;
+    data.discountPercent = discountNum;
+    data.finalPrice = Math.round(basePriceNum * (1 - discountNum / 100) * 100) / 100;
+  }
+  if (data.stock !== undefined) {
+    data.stock = parseInt(data.stock) || 0;
   }
 
   // Parse new fields
-  if (data.installmentPrice !== undefined && data.installmentPrice !== null) {
+  if (data.installmentPrice !== undefined && data.installmentPrice !== null && data.installmentPrice !== '') {
     data.installmentPrice = parseFloat(data.installmentPrice) || null;
+  } else if (data.installmentPrice === '') {
+    data.installmentPrice = null;
   }
   if (data.nfc !== undefined) {
     data.nfc = data.nfc === true || data.nfc === 'true';
   }
   if (data.storePickup !== undefined) {
     data.storePickup = data.storePickup === true || data.storePickup === 'true';
+  }
+  if (data.deliveryFree !== undefined) {
+    data.deliveryFree = data.deliveryFree === true || data.deliveryFree === 'true';
   }
   if (data.deliveryFree !== undefined) {
     data.deliveryFree = data.deliveryFree === true || data.deliveryFree === 'true';

@@ -109,7 +109,7 @@ export default function ContactPage() {
       icon: RiPhoneLine,
       title: 'Call Us',
       desc: settings?.adminPhone || '+880 170 000 0000',
-      subtitle: 'Mon-Fri, 9AM-8PM',
+      subtitle: settings?.contactPhoneHours || 'Mon-Fri, 9AM-8PM',
       link: `tel:${(settings?.adminPhone || '+8801700000000').replace(/[^+\d]/g, '')}`,
       gradient: 'from-emerald-500 to-teal-400',
       bgLight: 'bg-emerald-50',
@@ -118,9 +118,9 @@ export default function ContactPage() {
     {
       icon: RiWhatsappLine,
       title: 'WhatsApp',
-      desc: settings?.adminPhone || '+880 170 000 0000',
-      subtitle: 'Instant messaging support',
-      link: `https://wa.me/${(settings?.adminPhone || '8801700000000').replace(/[^+\d]/g, '')}`,
+      desc: settings?.contactWhatsapp || settings?.adminPhone || '+880 170 000 0000',
+      subtitle: settings?.contactWhatsappSubtitle || 'Instant messaging support',
+      link: `https://wa.me/${(settings?.contactWhatsapp || settings?.adminPhone || '8801700000000').replace(/[^+\d]/g, '')}`,
       gradient: 'from-green-500 to-lime-400',
       bgLight: 'bg-green-50',
       iconColor: 'text-green-600',
@@ -128,8 +128,8 @@ export default function ContactPage() {
     {
       icon: RiMapPinLine,
       title: 'Visit Our Store',
-      desc: '123 Tech Street, Colombo',
-      subtitle: 'Sri Lanka',
+      desc: settings?.contactStoreAddressShort || '123 Tech Street, Colombo',
+      subtitle: settings?.contactStoreCountry || 'Sri Lanka',
       link: '#map-section',
       gradient: 'from-violet-500 to-purple-400',
       bgLight: 'bg-violet-50',
@@ -375,23 +375,23 @@ export default function ContactPage() {
                       <div className="flex justify-between items-center py-3 border-b border-white/10">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow" />
-                          <span className="text-secondary-300 text-sm font-medium">Monday — Friday</span>
+                          <span className="text-secondary-300 text-sm font-medium">{settings?.supportWeekdaysLabel || 'Monday — Friday'}</span>
                         </div>
-                        <span className="text-white font-bold text-sm">9:00 AM – 8:00 PM</span>
+                        <span className="text-white font-bold text-sm">{settings?.supportWeekdaysValue || '9:00 AM – 8:00 PM'}</span>
                       </div>
                       <div className="flex justify-between items-center py-3 border-b border-white/10">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse-slow" />
-                          <span className="text-secondary-300 text-sm font-medium">Saturday — Sunday</span>
+                          <span className="text-secondary-300 text-sm font-medium">{settings?.supportWeekendsLabel || 'Saturday — Sunday'}</span>
                         </div>
-                        <span className="text-white font-bold text-sm">10:00 AM – 6:00 PM</span>
+                        <span className="text-white font-bold text-sm">{settings?.supportWeekendsValue || '10:00 AM – 6:00 PM'}</span>
                       </div>
                       <div className="flex justify-between items-center py-3">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-red-400" />
-                          <span className="text-secondary-300 text-sm font-medium">Public Holidays</span>
+                          <span className="text-secondary-300 text-sm font-medium">{settings?.supportHolidaysLabel || 'Public Holidays'}</span>
                         </div>
-                        <span className="text-secondary-400 font-bold text-sm">Closed</span>
+                        <span className="text-secondary-400 font-bold text-sm">{settings?.supportHolidaysValue || 'Closed'}</span>
                       </div>
                     </div>
                   </div>
@@ -411,12 +411,12 @@ export default function ContactPage() {
                     </div>
                     <div className="space-y-4">
                       {[
-                        { icon: RiShieldCheckLine, text: '100% Authentic Products' },
-                        { icon: RiGlobalLine, text: 'Nationwide Delivery' },
-                        { icon: RiCustomerService2Line, text: '24/7 Customer Support' },
-                        { icon: RiCheckboxCircleLine, text: 'Easy Returns & Warranty' },
-                      ].map((item) => (
-                        <div key={item.text} className="flex items-center gap-3">
+                        { icon: RiShieldCheckLine, text: settings?.contactFeature1 || '100% Authentic Products' },
+                        { icon: RiGlobalLine, text: settings?.contactFeature2 || 'Nationwide Delivery' },
+                        { icon: RiCustomerService2Line, text: settings?.contactFeature3 || '24/7 Customer Support' },
+                        { icon: RiCheckboxCircleLine, text: settings?.contactFeature4 || 'Easy Returns & Warranty' },
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
                             <item.icon size={16} />
                           </div>
@@ -438,11 +438,11 @@ export default function ContactPage() {
                     <h4 className="font-black text-lg tracking-tight text-secondary-950">Store Location</h4>
                   </div>
                   <p className="text-secondary-500 text-sm font-medium leading-relaxed mb-5">
-                    123 Tech Street, Galle Road<br />
-                    Colombo 03, Sri Lanka
+                    {settings?.contactStoreAddressLine1 || '123 Tech Street, Galle Road'}<br />
+                    {settings?.contactStoreAddressLine2 || 'Colombo 03, Sri Lanka'}
                   </p>
                   <a
-                    href="https://maps.google.com"
+                    href={settings?.contactGoogleMapsLink || 'https://maps.google.com'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-sm font-bold text-primary-600 hover:text-primary-700 transition-colors group/link"
@@ -465,7 +465,7 @@ export default function ContactPage() {
             <div className="rounded-[2.5rem] overflow-hidden shadow-[0_32px_80px_-20px_rgba(0,0,0,0.1)] border border-secondary-100">
               <iframe
                 title="Store Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.902756038!2d90.4125!3d23.7808!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDQ2JzUxLjAiTiA5MMKwMjQnNDUuMCJF!5e0!3m2!1sen!2sbd!4v1234567890"
+                src={settings?.contactMapIframeUrl || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.902756038!2d90.4125!3d23.7808!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDQ2JzUxLjAiTiA5MMKwMjQnNDUuMCJF!5e0!3m2!1sen!2sbd!4v1234567890'}
                 className="w-full h-[350px] md:h-[420px] border-0"
                 allowFullScreen
                 loading="lazy"

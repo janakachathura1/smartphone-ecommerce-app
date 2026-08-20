@@ -147,6 +147,7 @@ model Product {
   warrantyProvider  String?
   deliveryInfo      String?
   deliveryFree      Boolean @default(true)
+  costPrice       Float?
   deliveryTime      String?
   storePickup       Boolean @default(false)
   paymentMethods    String?
@@ -195,6 +196,7 @@ model ProductVariant {
   sku       String?  @unique
   stock     Int      @default(0)
   price     Float?
+  costPrice Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -290,6 +292,9 @@ model Order {
   discountAmount Float     @default(0)
   totalAmount    Float
   notes          String?
+  courierName    String?   // Domex | Koombiyo | PromptX | Citypak | Pronto | DHL | In-House
+  trackingNumber String?
+  courierStatus  String?
   deliveredAt    DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -316,6 +321,7 @@ model OrderItem {
   quantity     Int
   unitPrice    Float
   totalPrice   Float
+  imei         String? // IMEI or Serial Number assigned
 
   order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product         @relation(fields: [productId], references: [id])
@@ -323,6 +329,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([variantId])
+  @@index([imei])
 }
 
 model Review {
@@ -358,3 +365,98 @@ model SystemSetting {
   id    String @id @default("default")
   value String @db.Text
 }
+
+model DeviceWarranty {
+  id               String   @id @default(uuid())
+  imei             String   @unique
+  serialNo         String?
+  productName      String
+  productId        String?
+  orderId          String?
+  customerName     String
+  customerPhone    String
+  customerEmail    String?
+  warrantyPeriod   String   @default("1 Year")
+  warrantyType     String   @default("Company Warranty")
+  warrantyProvider String?
+  purchaseDate     DateTime @default(now())
+  expiresAt        DateTime
+  status           String   @default("active") // active | expired | claimed | void
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  claims           WarrantyClaim[]
+
+  @@index([imei])
+  @@index([customerPhone])
+  @@index([status])
+}
+
+model WarrantyClaim {
+  id               String         @id @default(uuid())
+  warrantyId       String
+  claimNumber      String         @unique
+  issueDescription String
+  status           String         @default("received") // received | under_inspection | sent_to_service | repaired | replaced | rejected
+  resolutionNotes  String?
+  repairCost       Float?         @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  warranty         DeviceWarranty @relation(fields: [warrantyId], references: [id], onDelete: Cascade)
+
+  @@index([warrantyId])
+  @@index([claimNumber])
+}
+
+model RepairJob {
+  id            String    @id @default(uuid())
+  jobNumber     String    @unique
+  customerName  String
+  phone         String
+  email         String?
+  deviceModel   String
+  imei          String?
+  passcode      String?
+  issue         String
+  estimatedCost Float     @default(0)
+  advancePaid   Float     @default(0)
+  status        String    @default("received") // received | diagnosing | waiting_parts | in_repair | ready | delivered | cancelled
+  technician    String?
+  notes         String?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([jobNumber])
+  @@index([phone])
+  @@index([status])
+}
+
+model TradeInRequest {
+  id              String   @id @default(uuid())
+  requestCode     String   @unique
+  customerName    String
+  phone           String
+  email           String?
+  deviceBrand     String
+  deviceModel     String
+  storage         String?
+  condition       String   // like_new | good | fair | damaged
+  batteryHealth   String?  // e.g. "88%"
+  screenCondition String?  // flawless | micro_scratches | cracked
+  accessories     String?  // Box, Charger, Cable
+  estimatedValue  Float    @default(0)
+  offeredValue    Float?
+  status          String   @default("pending") // pending | inspected | approved | rejected | completed
+  couponCode      String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([requestCode])
+  @@index([phone])
+  @@index([status])
+}
+

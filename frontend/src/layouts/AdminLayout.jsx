@@ -2,7 +2,9 @@ import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import {
   RiDashboardLine, RiShoppingBagLine, RiShoppingCartLine,
-  RiUserLine, RiPriceTag3Line, RiLogoutBoxLine, RiMenuLine, RiCloseLine, RiCoupon2Line, RiSettings3Line, RiStarLine, RiStore2Line
+  RiUserLine, RiPriceTag3Line, RiLogoutBoxLine, RiMenuLine, RiCloseLine,
+  RiCoupon2Line, RiSettings3Line, RiStarLine, RiStore2Line,
+  RiBarChart2Line, RiShieldCheckLine, RiToolsLine, RiExchangeLine
 } from 'react-icons/ri';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -12,10 +14,15 @@ const navItems = [
   { path: '/admin', label: 'Dashboard', icon: RiDashboardLine, exact: true },
   { path: '/admin/products', label: 'Products', icon: RiShoppingBagLine },
   { path: '/admin/orders', label: 'Orders', icon: RiShoppingCartLine },
+  { path: '/admin/warranty', label: 'Warranty & IMEI', icon: RiShieldCheckLine },
+  { path: '/admin/repairs', label: 'Repairs & Service', icon: RiToolsLine },
+  { path: '/admin/trade-ins', label: 'Trade-In Valuation', icon: RiExchangeLine },
+  { path: '/admin/abandoned-carts', label: 'Abandoned Carts', icon: RiShoppingCartLine },
   { path: '/admin/users', label: 'Users', icon: RiUserLine },
   { path: '/admin/brands', label: 'Brands', icon: RiPriceTag3Line },
   { path: '/admin/reviews', label: 'Reviews', icon: RiStarLine },
   { path: '/admin/coupons', label: 'Coupons', icon: RiCoupon2Line },
+  { path: '/admin/reports', label: 'Reports', icon: RiBarChart2Line },
   { path: '/admin/settings', label: 'Settings', icon: RiSettings3Line },
 ];
 

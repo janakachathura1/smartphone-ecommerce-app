@@ -40,6 +40,52 @@ export default function ProductDetailPage() {
     queryFn: () => api.get(`/products/${slug}`).then((r) => r.data.data.product),
   });
 
+  // 360 Spin State
+  const [is360Mode, setIs360Mode] = useState(false);
+  const [isAutoSpinning, setIsAutoSpinning] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+
+  const imagesList = data?.images?.length > 0
+    ? data.images.map((img) => img.url)
+    : [`https://placehold.co/600x600/e2e8f0/64748b?text=${encodeURIComponent(data?.name || 'Product')}`];
+
+  useEffect(() => {
+    let interval;
+    const imgLen = imagesList.length;
+    if (isAutoSpinning && imgLen > 1) {
+      interval = setInterval(() => {
+        setSelectedImage((prev) => (prev + 1) % imgLen);
+      }, 350);
+    }
+    return () => clearInterval(interval);
+  }, [isAutoSpinning, imagesList.length]);
+
+  const handleMouseDown360 = (e) => {
+    if (!is360Mode || imagesList.length <= 1) return;
+    setIsDragging(true);
+    setDragStartX(e.clientX || e.touches?.[0]?.clientX || 0);
+  };
+
+  const handleMouseMove360 = (e) => {
+    const imgLen = imagesList.length;
+    if (!is360Mode || !isDragging || imgLen <= 1) return;
+    const currentX = e.clientX || e.touches?.[0]?.clientX || 0;
+    const deltaX = currentX - dragStartX;
+    if (Math.abs(deltaX) > 15) {
+      if (deltaX > 0) {
+        setSelectedImage((prev) => (prev - 1 + imgLen) % imgLen);
+      } else {
+        setSelectedImage((prev) => (prev + 1) % imgLen);
+      }
+      setDragStartX(currentX);
+    }
+  };
+
+  const handleMouseUp360 = () => {
+    setIsDragging(false);
+  };
+
   useEffect(() => {
     if (data) {
       addViewedProduct(data);
@@ -216,21 +262,65 @@ export default function ProductDetailPage() {
         <div className="grid lg:grid-cols-2 gap-10 mb-16">
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="aspect-square overflow-hidden rounded-[2.5rem] bg-white border border-primary-100 p-10 shadow-xl shadow-primary-100/30 relative group">
+            <div
+              onMouseDown={handleMouseDown360}
+              onMouseMove={handleMouseMove360}
+              onMouseUp={handleMouseUp360}
+              onTouchStart={handleMouseDown360}
+              onTouchMove={handleMouseMove360}
+              onTouchEnd={handleMouseUp360}
+              className={`aspect-square overflow-hidden rounded-[2.5rem] bg-white border border-primary-100 p-8 shadow-xl shadow-primary-100/30 relative group select-none ${is360Mode ? 'cursor-grab active:cursor-grabbing border-primary-500 ring-4 ring-primary-100' : ''}`}
+            >
+              {images.length > 1 && (
+                <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIs360Mode(!is360Mode);
+                      if (isAutoSpinning) setIsAutoSpinning(false);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer ${is360Mode ? 'bg-primary-600 text-white ring-2 ring-primary-300' : 'bg-white/90 text-secondary-800 hover:bg-primary-600 hover:text-white backdrop-blur-md'}`}
+                  >
+                    <span>🔄</span> {is360Mode ? '360° Spin Active' : '360° View'}
+                  </button>
+
+                  {is360Mode && (
+                    <button
+                      type="button"
+                      onClick={() => setIsAutoSpinning(!isAutoSpinning)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md cursor-pointer ${isAutoSpinning ? 'bg-amber-500 text-white' : 'bg-secondary-900 text-white hover:bg-secondary-800'}`}
+                    >
+                      {isAutoSpinning ? '⏸️ Pause' : '▶️ Auto Spin'}
+                    </button>
+                  )}
+                </div>
+              )}
+
               <img
                 src={images[selectedImage]}
                 alt={product.name}
-                className="w-full h-full object-contain transition-all duration-700 group-hover:scale-110"
+                className="w-full h-full object-contain transition-all duration-300"
                 onError={(e) => { e.target.src = 'https://placehold.co/600x600/e2e8f0/64748b?text=No+Image'; }}
               />
+
+              {is360Mode && (
+                <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
+                  <span className="bg-secondary-900/80 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full backdrop-blur-md shadow-lg border border-white/20">
+                    ↔️ Drag Left / Right to Spin 360° ({selectedImage + 1} / {images.length})
+                  </span>
+                </div>
+              )}
             </div>
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {images.map((img, i) => (
                   <button
                     key={i}
-                    onClick={() => setSelectedImage(i)}
-                    className={`w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${i === selectedImage ? 'border-primary-500' : 'border-secondary-200 hover:border-secondary-300'}`}
+                    onClick={() => {
+                      setSelectedImage(i);
+                      if (is360Mode) setIsAutoSpinning(false);
+                    }}
+                    className={`w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all ${i === selectedImage ? 'border-primary-500 ring-2 ring-primary-200' : 'border-secondary-200 hover:border-secondary-300'}`}
                   >
                     <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://placehold.co/64x64'; }} />
                   </button>

@@ -40,6 +40,11 @@ import AdminCoupons from './pages/admin/AdminCoupons';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminReviews from './pages/admin/AdminReviews';
 import AdminCheckout from './pages/admin/AdminCheckout';
+import AdminReports from './pages/admin/AdminReports';
+import AdminWarranty from './pages/admin/AdminWarranty';
+import AdminRepairs from './pages/admin/AdminRepairs';
+import AdminTradeIn from './pages/admin/AdminTradeIn';
+import AdminAbandonedCarts from './pages/admin/AdminAbandonedCarts';
 import NotFoundPage from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -196,10 +201,15 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="warranty" element={<AdminWarranty />} />
+            <Route path="repairs" element={<AdminRepairs />} />
+            <Route path="trade-ins" element={<AdminTradeIn />} />
+            <Route path="abandoned-carts" element={<AdminAbandonedCarts />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="brands" element={<AdminBrands />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="reviews" element={<AdminReviews />} />
+            <Route path="reports" element={<AdminReports />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 
